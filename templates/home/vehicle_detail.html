@@ -1,0 +1,101 @@
+{% extends "home/base.html" %}
+
+{% block title %}Vehicle Details - LSM Portal{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Vehicle Details</h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Vehicle Information</h6>
+            </div>
+            <div class="card-body">
+                {% if vehicle.image %}
+                    <img src="{{ vehicle.image.url }}" alt="{{ vehicle }}" class="img-fluid mb-3">
+                {% endif %}
+                <p><strong>UUID:</strong> {{ vehicle.uuid }}</p>
+                <p><strong>Customer Name:</strong> {{ vehicle.customer_name }}</p>
+                <p><strong>Address:</strong> {{ vehicle.address }}</p>
+                <p><strong>Phone:</strong> {{ vehicle.phone }}</p>
+                <p><strong>Vehicle:</strong> {{ vehicle.vehicle_make }} {{ vehicle.model }} ({{ vehicle.year }})</p>
+                <p><strong>Chasis No:</strong> {{ vehicle.chasis_no }}</p>
+                <p><strong>Licence Plate:</strong> {{ vehicle.licence_plate }}</p>
+                <p><strong>Date of First Registration:</strong> {{ vehicle.date_of_first_registration }}</p>
+                <p><strong>Mileage:</strong> {{ vehicle.mileage }}</p>
+                <p><strong>Complaint:</strong> {{ vehicle.complaint }}</p>
+                <p><strong>Status:</strong> {{ vehicle.get_status_display }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Job Sheet</h6>
+            </div>
+            <div class="card-body">
+                {% if vehicle.job_sheet %}
+                    <p><strong>Service Advisor:</strong> {{ vehicle.job_sheet.service_advisor }}</p>
+                    <p><strong>Assigned To:</strong> {{ vehicle.job_sheet.assigned_to }}</p>
+                    <p><strong>Accessories:</strong> {{ vehicle.job_sheet.accessories }}</p>
+                    <p><strong>Job Description:</strong> {{ vehicle.job_sheet.job_description }}</p>
+                    {% if request.user.access_level == 'procurement' or request.user.access_level == 'workshop' or request.user.access_level == 'admin' %}
+                        <a href="{% url 'home:edit_job_sheet' vehicle.id %}" class="btn btn-primary btn-sm">Edit Job Sheet</a>
+                    {% endif %}
+                {% else %}
+                    <p>No job sheet found for this vehicle.</p>
+                    {% if request.user.access_level == 'procurement' or request.user.access_level == 'workshop' or request.user.access_level == 'admin' %}
+                        <a href="{% url 'home:create_job_sheet' vehicle.id %}" class="btn btn-primary btn-sm">Create Job Sheet</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Internal Estimate</h6>
+            </div>
+            <div class="card-body">
+                {% if vehicle.internal_estimate %}
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Part</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in vehicle.internal_estimate.estimatepart_set.all %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.price }}</td>
+                                <td>{% widthratio item.price 1 item.quantity %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="3" class="text-end">Grand Total:</th>
+                                <th>{{ vehicle.internal_estimate.grand_total }}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    {% if request.user.access_level == 'procurement' or request.user.access_level == 'workshop' or request.user.access_level == 'admin' %}
+                        <a href="{% url 'home:edit_internal_estimate' vehicle.id %}" class="btn btn-primary btn-sm">Edit Internal Estimate</a>
+                    {% endif %}
+                {% else %}
+                    <p>No internal estimate found for this vehicle.</p>
+                    {% if request.user.access_level == 'procurement' or request.user.access_level == 'workshop' or request.user.access_level == 'admin' %}
+                        <a href="{% url 'home:create_internal_estimate' vehicle.id %}" class="btn btn-primary btn-sm">Create Internal Estimate</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'home/base.html' %}
+
+{% block title %}Edit Staff{% endblock %}
+
+{% block content %}
+<h2>Edit Staff Details: {{ staff_member.full_name }}</h2>
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="{% url 'home:staffs' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

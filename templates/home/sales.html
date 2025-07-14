@@ -1,0 +1,57 @@
+{% extends "home/base.html" %}
+
+{% block title %}Sales - LSM Portal{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Sales</h1>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Sales Records</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Sale ID</th>
+                        <th>Vehicle</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>201</td>
+                        <td>Toyota Camry (123456)</td>
+                        <td>Michael Brown</td>
+                        <td>2023-06-15</td>
+                        <td>$25,000</td>
+                        <td>
+                            <a href="#" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
+                            <a href="#" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a>
+                            <a href="#" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>202</td>
+                        <td>Honda Accord (ABCDEF)</td>
+                        <td>Emily Davis</td>
+                        <td>2023-06-20</td>
+                        <td>$28,000</td>
+                        <td>
+                            <a href="#" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
+                            <a href="#" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a>
+                            <a href="#" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

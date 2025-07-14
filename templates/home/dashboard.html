@@ -1,0 +1,100 @@
+{% extends "home/base.html" %}
+
+{% block title %}Dashboard - LSM Portal{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+</div>
+
+<div class="row">
+
+    <!-- Total Vehicles Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Vehicles (Inventory)</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">452</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-car fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicles for Repair Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            Vehicles for Repair</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">38</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-tools fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Customers Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            New Customers (Monthly)</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">12</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Revenue (Monthly)</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">$215,000</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card.border-left-primary { border-left: .25rem solid var(--primary-color) !important; }
+    .text-primary { color: var(--primary-color) !important; }
+    .card.border-left-danger { border-left: .25rem solid var(--secondary-color) !important; }
+    .text-danger { color: var(--secondary-color) !important; }
+    .card.border-left-success { border-left: .25rem solid #1cc88a !important; }
+    .text-success { color: #1cc88a !important; }
+    .card.border-left-info { border-left: .25rem solid #36b9cc !important; }
+    .text-info { color: #36b9cc !important; }
+    .shadow { box-shadow: 0 .15rem 1.75rem 0 rgba(58,59,69,.15)!important; }
+    .text-gray-300 { color: #dddfeb!important; }
+    .text-gray-800 { color: #5a5c69!important; }
+    .font-weight-bold { font-weight: 700!important; }
+    .text-xs { font-size: .7rem; }
+</style>
+{% endblock %}
