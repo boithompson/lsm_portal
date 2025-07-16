@@ -20,11 +20,6 @@ def dashboard(request):
 
 
 @login_required
-def inventory(request):
-    return render(request, "home/inventory.html")
-
-
-@login_required
 def sales(request):
     return render(request, "home/sales.html")
 
