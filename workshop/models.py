@@ -2,16 +2,17 @@ from django.db import models
 from accounts.models import CustomUser
 import uuid
 
+
 class Vehicle(models.Model):
     STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('in_progress', 'In Progress'),
-        ('completed', 'Completed'),
-        ('cancelled', 'Cancelled'),
+        ("pending", "Pending"),
+        ("in_progress", "In Progress"),
+        ("completed", "Completed"),
+        ("cancelled", "Cancelled"),
     )
 
     uuid = models.CharField(max_length=12, unique=True, editable=False)
-    image = models.ImageField(upload_to='vehicle_images/', blank=True, null=True)
+    image = models.ImageField(upload_to="vehicle_images/", blank=True, null=True)
     customer_name = models.CharField(max_length=255)
     address = models.CharField(max_length=225)
     phone = models.CharField(max_length=20)
@@ -23,7 +24,7 @@ class Vehicle(models.Model):
     date_of_first_registration = models.DateField()
     mileage = models.PositiveIntegerField()
     complaint = models.TextField()
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
 
     def __str__(self):
         return f"{self.vehicle_make} {self.model} ({self.licence_plate})"
@@ -35,9 +36,22 @@ class Vehicle(models.Model):
 
 
 class JobSheet(models.Model):
-    vehicle = models.OneToOneField(Vehicle, on_delete=models.CASCADE, related_name='job_sheet')
-    service_advisor = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='advised_job_sheets')
-    assigned_to = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_job_sheets')
+    vehicle = models.OneToOneField(
+        Vehicle, on_delete=models.CASCADE, related_name="job_sheet"
+    )
+    service_advisor = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="advised_job_sheets",
+    )
+    assigned_to = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_job_sheets",
+    )
     accessories = models.TextField(blank=True)
     job_description = models.TextField()
 
@@ -46,7 +60,9 @@ class JobSheet(models.Model):
 
 
 class InternalEstimate(models.Model):
-    vehicle = models.OneToOneField(Vehicle, on_delete=models.CASCADE, related_name='internal_estimate')
+    vehicle = models.OneToOneField(
+        Vehicle, on_delete=models.CASCADE, related_name="internal_estimate"
+    )
 
     def __str__(self):
         return f"Internal Estimate for {self.vehicle}"

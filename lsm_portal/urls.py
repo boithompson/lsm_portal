@@ -5,9 +5,9 @@ from django.conf.urls.static import static
 from accounts.views import login_view
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('accounts.urls')),
-    path('dashboard/', include('home.urls')),
+    path("admin/", admin.site.urls),
+    path("", include("accounts.urls")),
+    path("dashboard/", include("home.urls")),
 ]
 
 if settings.DEBUG:

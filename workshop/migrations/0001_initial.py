@@ -15,55 +15,138 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='InternalEstimate',
+            name="InternalEstimate",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Vehicle',
+            name="Vehicle",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('uuid', models.CharField(editable=False, max_length=12, unique=True)),
-                ('image', models.ImageField(blank=True, null=True, upload_to='vehicle_images/')),
-                ('customer_name', models.CharField(max_length=255)),
-                ('address', models.CharField(max_length=225)),
-                ('phone', models.CharField(max_length=20)),
-                ('vehicle_make', models.CharField(max_length=100)),
-                ('model', models.CharField(max_length=100)),
-                ('year', models.PositiveIntegerField()),
-                ('chasis_no', models.CharField(max_length=100)),
-                ('licence_plate', models.CharField(max_length=20)),
-                ('date_of_first_registration', models.DateField()),
-                ('mileage', models.PositiveIntegerField()),
-                ('complaint', models.TextField()),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('in_progress', 'In Progress'), ('completed', 'Completed'), ('cancelled', 'Cancelled')], default='pending', max_length=20)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("uuid", models.CharField(editable=False, max_length=12, unique=True)),
+                (
+                    "image",
+                    models.ImageField(
+                        blank=True, null=True, upload_to="vehicle_images/"
+                    ),
+                ),
+                ("customer_name", models.CharField(max_length=255)),
+                ("address", models.CharField(max_length=225)),
+                ("phone", models.CharField(max_length=20)),
+                ("vehicle_make", models.CharField(max_length=100)),
+                ("model", models.CharField(max_length=100)),
+                ("year", models.PositiveIntegerField()),
+                ("chasis_no", models.CharField(max_length=100)),
+                ("licence_plate", models.CharField(max_length=20)),
+                ("date_of_first_registration", models.DateField()),
+                ("mileage", models.PositiveIntegerField()),
+                ("complaint", models.TextField()),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("in_progress", "In Progress"),
+                            ("completed", "Completed"),
+                            ("cancelled", "Cancelled"),
+                        ],
+                        default="pending",
+                        max_length=20,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='EstimatePart',
+            name="EstimatePart",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('price', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('quantity', models.PositiveIntegerField(default=1)),
-                ('estimate', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='workshop.internalestimate')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("price", models.DecimalField(decimal_places=2, max_digits=10)),
+                ("quantity", models.PositiveIntegerField(default=1)),
+                (
+                    "estimate",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="workshop.internalestimate",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='JobSheet',
+            name="JobSheet",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('accessories', models.TextField(blank=True)),
-                ('job_description', models.TextField()),
-                ('assigned_to', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='assigned_job_sheets', to=settings.AUTH_USER_MODEL)),
-                ('service_advisor', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='advised_job_sheets', to=settings.AUTH_USER_MODEL)),
-                ('vehicle', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='job_sheet', to='workshop.vehicle')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("accessories", models.TextField(blank=True)),
+                ("job_description", models.TextField()),
+                (
+                    "assigned_to",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="assigned_job_sheets",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "service_advisor",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="advised_job_sheets",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "vehicle",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="job_sheet",
+                        to="workshop.vehicle",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='internalestimate',
-            name='vehicle',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='internal_estimate', to='workshop.vehicle'),
+            model_name="internalestimate",
+            name="vehicle",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="internal_estimate",
+                to="workshop.vehicle",
+            ),
         ),
     ]

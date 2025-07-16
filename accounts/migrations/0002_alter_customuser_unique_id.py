@@ -7,13 +7,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0001_initial'),
+        ("accounts", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='customuser',
-            name='unique_id',
-            field=models.CharField(default=accounts.models.generate_unique_id, editable=False, max_length=9, unique=True),
+            model_name="customuser",
+            name="unique_id",
+            field=models.CharField(
+                default=accounts.models.generate_unique_id,
+                editable=False,
+                max_length=9,
+                unique=True,
+            ),
         ),
     ]
