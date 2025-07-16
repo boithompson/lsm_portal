@@ -46,6 +46,9 @@ class CustomUser(AbstractBaseUser):
     full_name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=20)
+    branch = models.ForeignKey(
+        "Branch", on_delete=models.SET_NULL, null=True, blank=True, related_name="users"
+    )
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -64,3 +67,12 @@ class CustomUser(AbstractBaseUser):
 
     def has_module_perms(self, app_label):
         return self.is_superuser
+
+
+class Branch(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    address = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name

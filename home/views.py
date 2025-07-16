@@ -1,8 +1,9 @@
+from django import forms
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.forms import inlineformset_factory
-from accounts.models import CustomUser
+from accounts.models import CustomUser, Branch
 from workshop.models import Vehicle, JobSheet, InternalEstimate, EstimatePart
 from workshop.forms import (
     VehicleForm,
@@ -32,16 +33,32 @@ def staffs(request):
     if request.user.access_level not in ["admin", "manager"]:
         return redirect("home:dashboard")
 
-    users = CustomUser.objects.exclude(access_level="admin")
+    if request.user.access_level == "admin":
+        users = CustomUser.objects.exclude(access_level="admin")
+    else:  # Manager
+        users = CustomUser.objects.filter(branch=request.user.branch).exclude(
+            access_level="admin"
+        )
+
     context = {"staffs": users}
     return render(request, "home/staffs.html", context)
 
 
 @login_required
 def workshop(request):
-    vehicles = Vehicle.objects.all()
     query = request.GET.get("q")
     status = request.GET.get("status")
+    selected_branch_id = request.GET.get("branch")  # for admin filtering
+
+    if request.user.access_level == "admin":
+        vehicles = Vehicle.objects.all()
+        branches = Branch.objects.all()
+
+        if selected_branch_id:
+            vehicles = vehicles.filter(branch__id=selected_branch_id)
+    else:
+        vehicles = Vehicle.objects.filter(branch=request.user.branch)
+        branches = None  # no need to show branches to non-admins
 
     if query:
         vehicles = vehicles.filter(
@@ -57,6 +74,8 @@ def workshop(request):
     context = {
         "vehicles": vehicles,
         "vehicle_status_choices": Vehicle.STATUS_CHOICES,
+        "branches": branches,  # will be used for filter dropdown in template
+        "selected_branch_id": selected_branch_id,
     }
     return render(request, "home/workshop.html", context)
 
@@ -74,11 +93,33 @@ def vehicle_detail(request, vehicle_id):
 def add_vehicle(request):
     if request.method == "POST":
         form = VehicleForm(request.POST, request.FILES)
+        if request.user.access_level == "admin":
+            form.fields["branch"] = forms.ModelChoiceField(
+                queryset=Branch.objects.all(),
+                widget=forms.Select(attrs={"class": "form-control"}),
+            )
+
         if form.is_valid():
-            form.save()
+            vehicle = form.save(commit=False)
+
+            if request.user.access_level == "admin":
+                # Admin-selected branch is included in POST data
+                vehicle.branch = form.cleaned_data["branch"]
+            else:
+                # Auto-assign user's branch
+                vehicle.branch = request.user.branch
+
+            vehicle.save()
+            messages.success(request, "Vehicle created successfully.")
             return redirect("home:workshop")
     else:
         form = VehicleForm()
+        if request.user.access_level == "admin":
+            form.fields["branch"] = forms.ModelChoiceField(
+                queryset=Branch.objects.all(),
+                widget=forms.Select(attrs={"class": "form-control"}),
+            )
+
     context = {
         "form": form,
     }

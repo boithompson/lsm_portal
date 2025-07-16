@@ -54,6 +54,16 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "lsm_portal.urls"
 
+SESSION_ENGINE = "django.contrib.sessions.backends.db"  # Default: stores in DB
+
+SESSION_COOKIE_AGE = 1800  # 30 minutes (in seconds)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session persists after browser closes
+SESSION_SAVE_EVERY_REQUEST = True  # Reset expiry on each request (rolling session)
+SESSION_COOKIE_SECURE = True  # Only send cookies over HTTPS
+SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript from accessing session cookie
+SESSION_COOKIE_SAMESITE = "Lax"  # Prevent CSRF in cross-origin requests (use 'Strict' if you don’t need cross-subdomain login)
+
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",

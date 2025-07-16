@@ -1,5 +1,5 @@
 from django.db import models
-from accounts.models import CustomUser
+from accounts.models import CustomUser, Branch
 import uuid
 
 
@@ -13,6 +13,9 @@ class Vehicle(models.Model):
 
     uuid = models.CharField(max_length=12, unique=True, editable=False)
     image = models.ImageField(upload_to="vehicle_images/", blank=True, null=True)
+    branch = models.ForeignKey(
+        Branch, on_delete=models.CASCADE, related_name="vehicles"
+    )
     customer_name = models.CharField(max_length=255)
     address = models.CharField(max_length=225)
     phone = models.CharField(max_length=20)

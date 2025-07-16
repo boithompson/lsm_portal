@@ -36,6 +36,12 @@
                             <label for="access_level" class="form-label">Access Level</label>
                             {{ form.access_level }}
                         </div>
+                        {% if 'branch' in form.fields %}
+                            <div class="mb-3">
+                                <label for="branch" class="form-label">Office Branch</label>
+                                {{ form.branch }}
+                            </div>
+                        {% endif %}
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
                             {{ form.password }}

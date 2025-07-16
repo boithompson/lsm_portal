@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from .forms import LoginForm, StaffCreationForm, StaffEditForm
 from django.contrib.auth.decorators import login_required
 from .models import CustomUser
+from django.contrib import messages
 
 
 def login_view(request):
@@ -29,16 +30,25 @@ def logout_view(request):
 
 @login_required
 def add_staff(request):
+    # Only admin and manager can access
     if request.user.access_level not in ["admin", "manager"]:
+        messages.error(request, "You do not have permission to add staff.")
         return redirect("home:dashboard")
 
     if request.method == "POST":
         form = StaffCreationForm(request.POST, user=request.user)
         if form.is_valid():
             user = form.save(commit=False)
+
+            # Admin can assign any branch manually (optional to add dropdown)
+            # Manager must auto-assign their own branch to the new staff
+            if request.user.access_level == "manager":
+                user.branch = request.user.branch
+
             password = form.cleaned_data.get("password")
             user.set_password(password)
             user.save()
+            messages.success(request, "Staff created successfully.")
             return redirect("home:staffs")
     else:
         form = StaffCreationForm(user=request.user)
