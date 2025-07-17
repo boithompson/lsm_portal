@@ -37,6 +37,7 @@ class CustomUser(AbstractBaseUser):
         ("account", "Account"),
         ("procurement", "Procurement"),
         ("workshop", "Workshop"),
+        ("sales", "Sales"),
     ]
 
     unique_id = models.CharField(

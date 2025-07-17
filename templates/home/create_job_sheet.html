@@ -14,7 +14,27 @@
     <div class="card-body">
         <form method="post">
             {% csrf_token %}
-            {{ form.as_p }}
+            
+            <div class="form-group">
+                <label for="{{ form.service_advisor.id_for_label }}">Service Advisor</label>
+                {{ form.service_advisor }}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.assigned_to.id_for_label }}">Assigned To (Technician Name)</label>
+                {{ form.assigned_to }}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.accessories.id_for_label }}">Accessories</label>
+                {{ form.accessories }}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.job_description.id_for_label }}">Job Description</label>
+                {{ form.job_description }}
+            </div>
+
             <button type="submit" class="btn btn-primary">Create Job Sheet</button>
             <a href="{% url 'home:vehicle_detail' vehicle.id %}" class="btn btn-secondary">Cancel</a>
         </form>
