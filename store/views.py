@@ -31,21 +31,15 @@ def add_inventory(request):
 
     return render(request, "store/add_inventory.html", {"form": form})
 
+
 @login_required
 def inventory_detail(request, pk):
     inventory = get_object_or_404(Inventory, pk=pk)
 
-    # Only allow access if user is admin, manager, or sales in same branch
-    if request.user.access_level not in ["admin", "sales", "manager"]:
-        messages.error(request, "You do not have permission to view this inventory.")
-        return redirect("store:inventory_list")
-
-    if request.user.access_level != "admin" and inventory.branch != request.user.branch:
-        messages.error(request, "You do not have access to this branch's inventory.")
-        return redirect("store:inventory_list")
-
     if request.method == "POST":
-        form = InventoryForm(request.POST, request.FILES, instance=inventory, user=request.user)
+        form = InventoryForm(
+            request.POST, request.FILES, instance=inventory, user=request.user
+        )
         if form.is_valid():
             inventory = form.save(commit=False)
 
@@ -59,7 +53,9 @@ def inventory_detail(request, pk):
     else:
         form = InventoryForm(instance=inventory, user=request.user)
 
-    return render(request, "store/inventory_detail.html", {"form": form, "inventory": inventory})
+    return render(
+        request, "store/inventory_detail.html", {"form": form, "inventory": inventory}
+    )
 
 
 @login_required
@@ -68,9 +64,8 @@ def inventory_list(request):
     branch_filter = request.GET.get("branch")
     query = request.GET.get("q")
 
-    if request.user.access_level != "admin":
-        inventories = inventories.filter(branch=request.user.branch)
-    elif branch_filter:
+    # Apply branch filter if specified
+    if branch_filter:
         inventories = inventories.filter(branch_id=branch_filter)
 
     if query:
@@ -80,7 +75,8 @@ def inventory_list(request):
             | Q(vin__icontains=query)
         )
 
-    branches = Branch.objects.all() if request.user.access_level == "admin" else None
+    # Show all branches to everyone for filtering purposes
+    branches = Branch.objects.all()
 
     context = {
         "inventories": inventories,

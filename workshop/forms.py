@@ -39,10 +39,9 @@ class VehicleForm(forms.ModelForm):
 
 class JobSheetForm(forms.ModelForm):
     assigned_to = forms.CharField(
-        widget=forms.TextInput(attrs={"class": "form-control"}),
-        required=False
+        widget=forms.TextInput(attrs={"class": "form-control"}), required=False
     )
-    
+
     class Meta:
         model = JobSheet
         fields = ["service_advisor", "assigned_to", "accessories", "job_description"]
@@ -54,9 +53,9 @@ class JobSheetForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["service_advisor"].queryset = self.fields["service_advisor"].queryset.filter(
-            access_level="workshop"
-        )
+        self.fields["service_advisor"].queryset = self.fields[
+            "service_advisor"
+        ].queryset.filter(access_level="workshop")
 
 
 class InternalEstimateForm(forms.ModelForm):
