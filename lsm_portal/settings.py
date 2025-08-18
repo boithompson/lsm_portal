@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-*+al5wi2-y%dqe%!-4o!7+k3t(%ilt21g&*y@x3mgd%8m*t%1p"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["lsmportal.pythonanywhere.com", "127.0.0.1", "localhost"]
 
