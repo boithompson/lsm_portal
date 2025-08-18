@@ -103,33 +103,50 @@
             <img src="{% static 'LSM.png' %}" alt="LSM Logo" style="width: 150px; margin-bottom: 1rem;">
         </div>
         <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="{% url 'home:dashboard' %}">
-                    <i class="fas fa-tachometer-alt fa-icon"></i> Dashboard
-                </a>
+            <li class="nav-item d-none">
+            <a class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="{% url 'home:dashboard' %}">
+                <i class="fas fa-tachometer-alt fa-icon"></i> Dashboard
+            </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {% if 'inventory' in request.path %}active{% endif %}" href="{% url 'store:inventory_list' %}">
-                    <i class="fas fa-car fa-icon"></i> Inventory
-                </a>
+            <a class="nav-link {% if 'inventory' in request.path %}active{% endif %}" href="{% url 'store:inventory_list' %}">
+                <i class="fas fa-car fa-icon"></i> Inventory
+            </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link {% if 'sales' in request.path %}active{% endif %}" href="{% url 'home:sales' %}">
-                    <i class="fas fa-file-invoice-dollar fa-icon"></i> Sales
-                </a>
+            <li class="nav-item d-none">
+            <a class="nav-link {% if 'sales' in request.path %}active{% endif %}" href="{% url 'home:sales' %}">
+                <i class="fas fa-file-invoice-dollar fa-icon"></i> Sales
+            </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link {% if 'workshop' in request.path %}active{% endif %}" href="{% url 'home:workshop' %}">
-                    <i class="fas fa-wrench fa-icon"></i> Workshop
-                </a>
+            <li class="nav-item d-none">
+            <a class="nav-link {% if 'workshop' in request.path %}active{% endif %}" href="{% url 'home:workshop' %}">
+                <i class="fas fa-wrench fa-icon"></i> Workshop
+            </a>
             </li>
             {% if request.user.access_level == 'admin' or request.user.access_level == 'manager' %}
             <li class="nav-item">
-                <a class="nav-link {% if 'staffs' in request.path %}active{% endif %}" href="{% url 'home:staffs' %}">
-                    <i class="fas fa-users-cog fa-icon"></i> Staffs
-                </a>
+            <a class="nav-link {% if 'staffs' in request.path %}active{% endif %}" href="{% url 'home:staffs' %}">
+                <i class="fas fa-users-cog fa-icon"></i> Staffs
+            </a>
             </li>
             {% endif %}
+            <li class="nav-item">
+            <a class="nav-link" href="{% url 'accounts:logout' %}" id="sidebar-logout-link">
+                <i class="fas fa-sign-out-alt fa-icon"></i> Logout
+            </a>
+            </li>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var logoutLink = document.getElementById('sidebar-logout-link');
+                    if (logoutLink) {
+                        logoutLink.addEventListener('click', function(e) {
+                            if (!confirm('Are you sure you want to logout?')) {
+                                e.preventDefault();
+                            }
+                        });
+                    }
+                });
+            </script>
         </ul>
     </div>
 

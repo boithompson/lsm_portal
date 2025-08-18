@@ -10,7 +10,7 @@ from django.contrib import messages
 @login_required
 def add_inventory(request):
     # Only allow admin, sales, and manager users
-    if request.user.access_level not in ["admin", "sales", "manager"]:
+    if request.user.access_level not in ["admin", "manager"]:
         messages.error(request, "You do not have permission to add inventory.")
         return redirect("store:inventory_list")
 
@@ -37,6 +37,11 @@ def inventory_detail(request, pk):
     inventory = get_object_or_404(Inventory, pk=pk)
 
     if request.method == "POST":
+        # Only allow admin and manager users to update inventory
+        if request.user.access_level not in ["admin", "manager"]:
+            messages.error(request, "You do not have permission to update inventory.")
+            return redirect("store:inventory_detail", pk=inventory.pk)
+
         form = InventoryForm(
             request.POST, request.FILES, instance=inventory, user=request.user
         )
