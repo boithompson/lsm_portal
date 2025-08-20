@@ -8,78 +8,24 @@
 </div>
 
 <div class="row">
-
-    <!-- Total Vehicles Card -->
+    {% for data in branch_inventory_data %}
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-left-primary shadow h-100 py-2">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            Total Vehicles (Inventory)</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">452</div>
+                            Available Inventory ({{ data.branch_name }})</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ data.available_inventory_count }}</div>
                     </div>
                     <div class="col-auto">
-                        <i class="fas fa-car fa-2x text-gray-300"></i>
+                        <i class="fas fa-warehouse fa-2x text-gray-300"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Vehicles for Repair Card -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-danger shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                            Vehicles for Repair</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">38</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-tools fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- New Customers Card -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-success shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            New Customers (Monthly)</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">12</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-users fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Revenue Card -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-info shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                            Revenue (Monthly)</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">$215,000</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% endfor %}
 </div>
 
 <style>
