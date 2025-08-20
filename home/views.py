@@ -25,7 +25,7 @@ def dashboard(request):
             branch=branch, status="available"
         ).count()
         branch_inventory_data.append(
-            {"branch_name": branch.name, "available_inventory_count": available_inventory_count}
+            {"branch_name": branch.name, "available_inventory_count": available_inventory_count, "branch_id": branch.id}
         )
 
     context = {
