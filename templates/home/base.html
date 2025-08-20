@@ -103,7 +103,7 @@
             <img src="{% static 'LSM.png' %}" alt="LSM Logo" style="width: 150px; margin-bottom: 1rem;">
         </div>
         <ul class="nav flex-column">
-            <li class="nav-item d-none">
+            <li class="nav-item">
             <a class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="{% url 'home:dashboard' %}">
                 <i class="fas fa-tachometer-alt fa-icon"></i> Dashboard
             </a>
