@@ -47,7 +47,7 @@ class Inventory(models.Model):
         ordering = ["-added_on"]
 
     def save(self, *args, **kwargs):
-        if self.pk:  # if object already exists
+        if not self._state.adding:  # if object already exists (not being added for the first time)
             original_inventory = Inventory.objects.get(pk=self.pk)
             if original_inventory.status == "sold" and self.status != "sold":
                 # If it was sold, and now trying to change to something else, prevent it

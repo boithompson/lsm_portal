@@ -1,0 +1,78 @@
+{% extends 'home/base.html' %}
+{% load static %}
+{% load custom_tags %}
+
+{% block title %}Export Inventory{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Export Inventory Data</h4>
+        </div>
+        <div class="card-body">
+            <form method="get" class="mb-4">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="{{ form.start_date.id_for_label }}" class="form-label">Start Date:</label>
+                        {{ form.start_date }}
+                    </div>
+                    <div class="col-md-4">
+                        <label for="{{ form.end_date.id_for_label }}" class="form-label">End Date:</label>
+                        {{ form.end_date }}
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-info w-100">Filter & Preview</button>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <h5>Select Fields to Export:</h5>
+                    <div class="row">
+                        {% for checkbox in form.fields_to_export %}
+                        <div class="col-md-3 col-sm-6">
+                            <div class="form-check">
+                                {{ checkbox.tag }}
+                                <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                                    {{ checkbox.choice_label }}
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button type="submit" name="export" value="true" class="btn btn-success w-100">Export to Excel</button>
+                </div>
+            </form>
+
+            {% if inventories %}
+            <h5 class="mt-5">Inventory Preview ({{ inventories.count }} items)</h5>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            {% for header in template_headers %}
+                                <th>{{ header }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in inventories %}
+                        <tr>
+                            {% for field_name in form.fields_to_export.value %}
+                                <td>{{ item|get_attribute:field_name }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% elif form.is_valid and not inventories and 'export' not in request.GET %}
+            <div class="alert alert-info mt-4" role="alert">
+                No inventory items found for the selected criteria.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

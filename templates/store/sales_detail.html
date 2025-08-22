@@ -31,12 +31,11 @@
                     <thead>
                         <tr>
                             <th>Customer Name</th>
-                            <th>Contact</th>
                             <th>Marketer</th>
                             <th>Sale Date</th>
                             <th>Items</th>
                             <th>Cash Paid</th>
-                            <th>Credit Paid</th>
+                            <th>Credit</th>
                             <th>Total Amount</th>
                         </tr>
                     </thead>
@@ -44,9 +43,8 @@
                         {% for record in sales_records %}
                         <tr>
                             <td>{{ record.customer_name }}</td>
-                            <td>{{ record.customer_contact|default:"N/A" }}</td>
                             <td>{{ record.marketer|default:"N/A" }}</td>
-                            <td>{{ record.sale_date|date:"Y-m-d H:i" }}</td>
+                            <td>{{ record.sale_date|date:"Y-m-d" }}</td>
                             <td>
                                 <ul>
                                     {% for item in record.items.all %}
@@ -55,7 +53,7 @@
                                 </ul>
                             </td>
                             <td>₦{{ record.amount_paid_cash|intcomma }}</td>
-                            <td>₦{{ record.credit_owned|intcomma }}</td>
+                            <td>₦{{ record.credit_owed|intcomma }}</td>
                             <td>₦{{ record.total_amount|intcomma }}</td>
                         </tr>
                         {% endfor %}

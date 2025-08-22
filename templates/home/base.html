@@ -18,6 +18,9 @@
         .text-secondary {
             color: var(--secondary-color) !important;
         }
+        .text-primary {
+            color: var(--primary-color) !important;
+        }
         .btn-primary {
             background-color: var(--primary-color) !important;
             border-color: var(--primary-color) !important;
@@ -126,6 +129,23 @@
                 <i class="fas fa-wrench fa-icon"></i> Workshop
             </a>
             </li>
+            <li class="nav-item dropdown"></li>
+                <a class="nav-link dropdown-toggle {% if 'export' in request.path %}active{% endif %}" href="#" id="exportDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-file-export fa-icon"></i> Export
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                    <li>
+                        <a class="dropdown-item" href="{% url 'store:inventory_export' %}">
+                            Export Inventory
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{% url 'store:sales_export' %}">
+                            Export Sales Record
+                        </a>
+                    </li>
+                </ul>
+            </li></a>
             {% if request.user.access_level == 'admin' or request.user.access_level == 'manager' %}
             <li class="nav-item">
             <a class="nav-link {% if 'staffs' in request.path %}active{% endif %}" href="{% url 'home:staffs' %}">

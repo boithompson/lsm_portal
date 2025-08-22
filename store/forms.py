@@ -1,5 +1,5 @@
 from django import forms
-from .models import Inventory, SalesRecord, SalesItem
+from .models import Inventory, SalesRecord, SalesItem, Branch
 from django.forms import inlineformset_factory
 from django.core.exceptions import ValidationError
 

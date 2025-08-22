@@ -18,3 +18,11 @@ def naira(value):
         return f"₦{value:,.2f}"  # Adds commas and 2 decimal places
     except (ValueError, TypeError):
         return value
+
+@register.filter(name='get_attribute')
+def get_attribute(obj, attr_name):
+    """
+    Safely gets an attribute from an object.
+    Usage: {{ object|get_attribute:attr_name }}
+    """
+    return getattr(obj, attr_name, "")

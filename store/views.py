@@ -1,15 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .models import Inventory, SalesRecord, SalesItem
 from .forms import InventoryForm, SalesRecordForm, SalesItemFormSet
+from .export_forms import InventoryExportForm, SalesExportForm
 from accounts.models import Branch
 from django.db.models import Q, Sum
 from django.contrib import messages
-from django.http import (
-    JsonResponse,
-)  # Potentially useful for AJAX later, but not strictly needed for initial implementation
+from django.http import HttpResponse, JsonResponse
 from datetime import datetime, timedelta
 from django.utils import timezone
+from openpyxl import Workbook
+from openpyxl.styles import Font, Border, Side, Alignment
+from django.views import View
 
 
 @login_required
@@ -288,3 +291,164 @@ def create_sales_record(request):
         "formset": formset,
     }
     return render(request, "store/create_sales_record.html", context)
+
+
+class InventoryExportView(LoginRequiredMixin, UserPassesTestMixin, View):
+    raise_exception = True # Raise 403 if test_func returns False
+
+    def test_func(self):
+        return self.request.user.access_level in ["admin", "manager"]
+
+    def get(self, request):
+        form = InventoryExportForm(request.GET)
+        inventories = Inventory.objects.all()
+
+        if form.is_valid():
+            start_date = form.cleaned_data.get('start_date')
+            end_date = form.cleaned_data.get('end_date')
+            fields_to_export = form.cleaned_data.get('fields_to_export')
+
+            if start_date:
+                inventories = inventories.filter(added_on__gte=start_date)
+            if end_date:
+                inventories = inventories.filter(added_on__lte=end_date)
+
+            if 'export' in request.GET:
+                response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                response['Content-Disposition'] = 'attachment; filename="inventory_export.xlsx"'
+
+                workbook = Workbook()
+                worksheet = workbook.active
+                worksheet.title = "Inventory"
+
+                # Apply styles
+                header_font = Font(bold=True)
+                thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+                center_aligned_text = Alignment(horizontal="center")
+
+                # Write headers
+                headers = [Inventory._meta.get_field(field_name).verbose_name for field_name in fields_to_export]
+                worksheet.append(headers)
+                for col in range(1, len(headers) + 1):
+                    worksheet.cell(row=1, column=col).font = header_font
+                    worksheet.cell(row=1, column=col).border = thin_border
+                    worksheet.cell(row=1, column=col).alignment = center_aligned_text
+
+                # Write data
+                for item in inventories:
+                    row_data = []
+                    for field_name in fields_to_export:
+                        value = getattr(item, field_name)
+                        # Convert non-primitive Django model objects to their string representation
+                        if hasattr(value, '__str__') and not isinstance(value, (str, int, float, bool, datetime)):
+                            row_data.append(str(value))
+                        elif isinstance(value, datetime) and timezone.is_aware(value):
+                            row_data.append(timezone.make_naive(value)) # Convert to naive datetime
+                        else:
+                            row_data.append(value)
+                    worksheet.append(row_data)
+                    for col in range(1, len(row_data) + 1):
+                        worksheet.cell(row=worksheet.max_row, column=col).border = thin_border
+
+                workbook.save(response)
+                return response
+        
+        # Prepare headers for template preview
+        template_headers = []
+        if form.is_valid() and fields_to_export:
+            for field_name in fields_to_export:
+                template_headers.append(Inventory._meta.get_field(field_name).verbose_name)
+
+        context = {
+            'form': form,
+            'inventories': inventories,
+            'template_headers': template_headers,
+        }
+        return render(request, 'store/inventory_export.html', context)
+
+
+class SalesExportView(LoginRequiredMixin, UserPassesTestMixin, View):
+    raise_exception = True # Raise 403 if test_func returns False
+
+    def test_func(self):
+        return self.request.user.access_level in ["admin", "manager"]
+
+    def get(self, request):
+        form = SalesExportForm(request.GET)
+        sales_records = SalesRecord.objects.all()
+
+        if form.is_valid():
+            start_date = form.cleaned_data.get('start_date')
+            end_date = form.cleaned_data.get('end_date')
+            fields_to_export = form.cleaned_data.get('fields_to_export')
+
+            if start_date:
+                sales_records = sales_records.filter(sale_date__gte=start_date)
+            if end_date:
+                sales_records = sales_records.filter(sale_date__lte=end_date)
+
+            if 'export' in request.GET:
+                response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                response['Content-Disposition'] = 'attachment; filename="sales_export.xlsx"'
+
+                workbook = Workbook()
+                worksheet = workbook.active
+                worksheet.title = "Sales"
+
+                # Apply styles
+                header_font = Font(bold=True)
+                thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+                center_aligned_text = Alignment(horizontal="center")
+
+                # Write headers
+                headers = []
+                for field_name in fields_to_export:
+                    if field_name == 'inventory_item_vin': # Custom field for VIN
+                        headers.append('Inventory Item VIN')
+                    else:
+                        headers.append(SalesRecord._meta.get_field(field_name).verbose_name)
+                worksheet.append(headers)
+                for col in range(1, len(headers) + 1):
+                    worksheet.cell(row=1, column=col).font = header_font
+                    worksheet.cell(row=1, column=col).border = thin_border
+                    worksheet.cell(row=1, column=col).alignment = center_aligned_text
+
+                # Write data
+                for record in sales_records:
+                    row_data = []
+                    for field_name in fields_to_export:
+                        if field_name == 'inventory_item_vin':
+                            sales_items = SalesItem.objects.filter(sales_record=record)
+                            vins = ", ".join([item.inventory_item.vin for item in sales_items])
+                            row_data.append(vins)
+                        else:
+                            value = getattr(record, field_name)
+                            # Convert non-primitive Django model objects to their string representation
+                            if hasattr(value, '__str__') and not isinstance(value, (str, int, float, bool, datetime)):
+                                row_data.append(str(value))
+                            elif isinstance(value, datetime) and timezone.is_aware(value):
+                                row_data.append(timezone.make_naive(value)) # Convert to naive datetime
+                            else:
+                                row_data.append(value)
+                    worksheet.append(row_data)
+                    for col in range(1, len(row_data) + 1):
+                        worksheet.cell(row=worksheet.max_row, column=col).border = thin_border
+
+                workbook.save(response)
+                return response
+
+        # Prepare headers for template preview
+        template_headers = []
+        if form.is_valid() and fields_to_export:
+            for field_name in fields_to_export:
+                if field_name == 'inventory_item_vin':
+                    template_headers.append('Inventory Item VIN')
+                else:
+                    template_headers.append(SalesRecord._meta.get_field(field_name).verbose_name)
+
+        context = {
+            'form': form,
+            'sales_records': sales_records,
+            'template_headers': template_headers,
+        }
+        return render(request, 'store/sales_export.html', context)
