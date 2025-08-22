@@ -36,7 +36,7 @@ class SalesItemInline(admin.TabularInline):
 
 @admin.register(SalesRecord)
 class SalesRecordAdmin(admin.ModelAdmin):
-    list_display = ('customer_name', 'branch', 'marketer', 'sale_date', 'total_amount', 'amount_paid_cash', 'credit_owned')
+    list_display = ('customer_name', 'branch', 'marketer', 'sale_date', 'total_amount', 'amount_paid_cash', 'credit_owed')
     list_filter = ('branch', 'sale_date')
     search_fields = ('customer_name', 'marketer', 'branch__name')
     inlines = [SalesItemInline]

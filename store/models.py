@@ -64,7 +64,7 @@ class SalesRecord(models.Model):
     marketer = models.CharField(max_length=200, blank=True, null=True) # Changed to CharField
     sale_date = models.DateTimeField(auto_now_add=True)
     amount_paid_cash = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
-    credit_owned = models.DecimalField(max_digits=12, decimal_places=2, default=0.00) # Changed from credit_owed
+    credit_owed = models.DecimalField(max_digits=12, decimal_places=2, default=0.00) # Changed from credit_owed
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00) # This will be calculated
 
     class Meta:

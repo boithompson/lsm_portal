@@ -14,14 +14,31 @@
         {% endfor %}
     {% endif %}
 
+    <form method="get" class="row g-3 mb-4 align-items-end">
+        <div class="col-md-4">
+            <label for="from_date" class="form-label">From Date:</label>
+            <input type="date" class="form-control" id="from_date" name="from_date" value="{{ from_date }}">
+        </div>
+        <div class="col-md-4">
+            <label for="to_date" class="form-label">To Date:</label>
+            <input type="date" class="form-control" id="to_date" name="to_date" value="{{ to_date }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+        <div class="col-md-2">
+            <a href="{% url 'store:sales_dashboard' %}" class="btn btn-secondary w-100">Clear Filter</a>
+        </div>
+    </form>
+
     <div class="row">
         {% for summary in branch_sales_summary %}
         <div class="col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="h3 text-xs font-weight-bold text-primary text-uppercase mb-1 text-center">
+                            <div class="h3 text-xs font-weight-bold text-secondary text-uppercase mb-1">
                                 {{ summary.branch.name }}
                             </div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800 mb-2">

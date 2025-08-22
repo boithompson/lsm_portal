@@ -6,6 +6,8 @@ from accounts.models import Branch
 from django.db.models import Q, Sum
 from django.contrib import messages
 from django.http import JsonResponse # Potentially useful for AJAX later, but not strictly needed for initial implementation
+from datetime import datetime, timedelta
+from django.utils import timezone
 
 
 @login_required
@@ -94,16 +96,36 @@ def inventory_list(request):
 
 @login_required
 def sales_dashboard(request):
+    from_date_str = request.GET.get('from_date')
+    to_date_str = request.GET.get('to_date')
+
+    sales_records_queryset = SalesRecord.objects.all()
+
+    if from_date_str:
+        try:
+            from_date = timezone.make_aware(datetime.strptime(from_date_str, '%Y-%m-%d'))
+            sales_records_queryset = sales_records_queryset.filter(sale_date__gte=from_date)
+        except ValueError:
+            messages.error(request, "Invalid 'from date' format. Please use YYYY-MM-DD.")
+
+    if to_date_str:
+        try:
+            to_date = timezone.make_aware(datetime.strptime(to_date_str, '%Y-%m-%d')) + timedelta(days=1) - timedelta(microseconds=1)
+            sales_records_queryset = sales_records_queryset.filter(sale_date__lte=to_date)
+        except ValueError:
+            messages.error(request, "Invalid 'to date' format. Please use YYYY-MM-DD.")
+
     if request.user.access_level in ["admin", "manager"]:
         # Admin and Manager see an overview of all branches
         branches = Branch.objects.all()
         branch_sales_summary = []
 
         for branch in branches:
-            total_sales_records = SalesRecord.objects.filter(branch=branch).count()
-            total_cash_sales = SalesRecord.objects.filter(branch=branch).aggregate(Sum('amount_paid_cash'))['amount_paid_cash__sum'] or 0
-            total_credit_sales = SalesRecord.objects.filter(branch=branch).aggregate(Sum('credit_owned'))['credit_owned__sum'] or 0
-            total_overall_sales = SalesRecord.objects.filter(branch=branch).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+            branch_sales_qs = sales_records_queryset.filter(branch=branch)
+            total_sales_records = branch_sales_qs.count()
+            total_cash_sales = branch_sales_qs.aggregate(Sum('amount_paid_cash'))['amount_paid_cash__sum'] or 0
+            total_credit_sales = branch_sales_qs.aggregate(Sum('credit_owed'))['credit_owed__sum'] or 0
+            total_overall_sales = branch_sales_qs.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
 
             branch_sales_summary.append({
                 "branch": branch,
@@ -115,6 +137,8 @@ def sales_dashboard(request):
         context = {
             "branch_sales_summary": branch_sales_summary,
             "is_admin_or_manager": True,
+            "from_date": from_date_str,
+            "to_date": to_date_str,
         }
         return render(request, "store/sales_overview.html", context)
     else:

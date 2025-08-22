@@ -42,12 +42,12 @@ class SalesRecordForm(forms.ModelForm):
 
     class Meta:
         model = SalesRecord
-        fields = ['customer_name', 'customer_contact', 'marketer', 'amount_paid_cash', 'credit_owned']
+        fields = ['customer_name', 'customer_contact', 'marketer', 'amount_paid_cash', 'credit_owed']
         widgets = {
             'customer_name': forms.TextInput(attrs={'class': 'form-control'}),
             'customer_contact': forms.TextInput(attrs={'class': 'form-control'}),
             'amount_paid_cash': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'credit_owned': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'credit_owed': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
 
 class SalesItemForm(forms.ModelForm):
