@@ -38,34 +38,55 @@ class InventoryForm(forms.ModelForm):
 
 
 class SalesRecordForm(forms.ModelForm):
-    marketer = forms.CharField(max_length=200, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    marketer = forms.CharField(
+        max_length=200,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
 
     class Meta:
         model = SalesRecord
-        fields = ['customer_name', 'customer_contact', 'marketer', 'amount_paid_cash', 'credit_owed']
+        fields = [
+            "customer_name",
+            "customer_contact",
+            "marketer",
+            "amount_paid_cash",
+            "credit_owed",
+        ]
         widgets = {
-            'customer_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'customer_contact': forms.TextInput(attrs={'class': 'form-control'}),
-            'amount_paid_cash': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'credit_owed': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            "customer_name": forms.TextInput(attrs={"class": "form-control"}),
+            "customer_contact": forms.TextInput(attrs={"class": "form-control"}),
+            "amount_paid_cash": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.01"}
+            ),
+            "credit_owed": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.01"}
+            ),
         }
 
+
 class SalesItemForm(forms.ModelForm):
-    vin = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    vin = forms.CharField(
+        max_length=100, widget=forms.TextInput(attrs={"class": "form-control"})
+    )
 
     class Meta:
         model = SalesItem
-        fields = ['vin', 'price_at_sale'] # Changed from inventory_item to vin
+        fields = ["vin", "price_at_sale"]  # Changed from inventory_item to vin
         widgets = {
-            'price_at_sale': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            "price_at_sale": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.01"}
+            ),
         }
 
     def clean_vin(self):
-        vin = self.cleaned_data['vin']
+        vin = self.cleaned_data["vin"]
         try:
             inventory_item = Inventory.objects.get(vin=vin)
-            if inventory_item.status != 'available':
-                raise ValidationError(f"Vehicle with VIN {vin} is not available for sale (status: {inventory_item.status}).")
+            if inventory_item.status != "available":
+                raise ValidationError(
+                    f"Vehicle with VIN {vin} is not available for sale (status: {inventory_item.status})."
+                )
         except Inventory.DoesNotExist:
             raise ValidationError(f"No inventory item found with VIN: {vin}.")
         return vin
@@ -73,9 +94,11 @@ class SalesItemForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Remove the inventory_item field from the base fields as it's replaced by vin
-        self.fields.pop('inventory_item', None)
+        self.fields.pop("inventory_item", None)
         # Add the custom vin field back
-        self.fields['vin'] = self.base_fields['vin']
+        self.fields["vin"] = self.base_fields["vin"]
 
 
-SalesItemFormSet = inlineformset_factory(SalesRecord, SalesItem, form=SalesItemForm, extra=1, can_delete=True)
+SalesItemFormSet = inlineformset_factory(
+    SalesRecord, SalesItem, form=SalesItemForm, extra=1, can_delete=True
+)

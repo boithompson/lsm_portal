@@ -13,7 +13,12 @@ SECRET_KEY = "django-insecure-*+al5wi2-y%dqe%!-4o!7+k3t(%ilt21g&*y@x3mgd%8m*t%1p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["lsmportal.pythonanywhere.com", "127.0.0.1", "lsm-portal.com", "www.lsm-portal.com"]
+ALLOWED_HOSTS = [
+    "lsmportal.pythonanywhere.com",
+    "127.0.0.1",
+    "lsm-portal.com",
+    "www.lsm-portal.com",
+]
 
 
 # Application definition
@@ -117,9 +122,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / "staticfiles"   # for collected files
-MEDIA_URL = '/media/'
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"  # for collected files
+MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type

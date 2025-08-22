@@ -5,7 +5,9 @@ from .forms import InventoryForm, SalesRecordForm, SalesItemFormSet
 from accounts.models import Branch
 from django.db.models import Q, Sum
 from django.contrib import messages
-from django.http import JsonResponse # Potentially useful for AJAX later, but not strictly needed for initial implementation
+from django.http import (
+    JsonResponse,
+)  # Potentially useful for AJAX later, but not strictly needed for initial implementation
 from datetime import datetime, timedelta
 from django.utils import timezone
 
@@ -96,22 +98,34 @@ def inventory_list(request):
 
 @login_required
 def sales_dashboard(request):
-    from_date_str = request.GET.get('from_date')
-    to_date_str = request.GET.get('to_date')
+    from_date_str = request.GET.get("from_date")
+    to_date_str = request.GET.get("to_date")
 
     sales_records_queryset = SalesRecord.objects.all()
 
     if from_date_str:
         try:
-            from_date = timezone.make_aware(datetime.strptime(from_date_str, '%Y-%m-%d'))
-            sales_records_queryset = sales_records_queryset.filter(sale_date__gte=from_date)
+            from_date = timezone.make_aware(
+                datetime.strptime(from_date_str, "%Y-%m-%d")
+            )
+            sales_records_queryset = sales_records_queryset.filter(
+                sale_date__gte=from_date
+            )
         except ValueError:
-            messages.error(request, "Invalid 'from date' format. Please use YYYY-MM-DD.")
+            messages.error(
+                request, "Invalid 'from date' format. Please use YYYY-MM-DD."
+            )
 
     if to_date_str:
         try:
-            to_date = timezone.make_aware(datetime.strptime(to_date_str, '%Y-%m-%d')) + timedelta(days=1) - timedelta(microseconds=1)
-            sales_records_queryset = sales_records_queryset.filter(sale_date__lte=to_date)
+            to_date = (
+                timezone.make_aware(datetime.strptime(to_date_str, "%Y-%m-%d"))
+                + timedelta(days=1)
+                - timedelta(microseconds=1)
+            )
+            sales_records_queryset = sales_records_queryset.filter(
+                sale_date__lte=to_date
+            )
         except ValueError:
             messages.error(request, "Invalid 'to date' format. Please use YYYY-MM-DD.")
 
@@ -123,17 +137,28 @@ def sales_dashboard(request):
         for branch in branches:
             branch_sales_qs = sales_records_queryset.filter(branch=branch)
             total_sales_records = branch_sales_qs.count()
-            total_cash_sales = branch_sales_qs.aggregate(Sum('amount_paid_cash'))['amount_paid_cash__sum'] or 0
-            total_credit_sales = branch_sales_qs.aggregate(Sum('credit_owed'))['credit_owed__sum'] or 0
-            total_overall_sales = branch_sales_qs.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+            total_cash_sales = (
+                branch_sales_qs.aggregate(Sum("amount_paid_cash"))[
+                    "amount_paid_cash__sum"
+                ]
+                or 0
+            )
+            total_credit_sales = (
+                branch_sales_qs.aggregate(Sum("credit_owed"))["credit_owed__sum"] or 0
+            )
+            total_overall_sales = (
+                branch_sales_qs.aggregate(Sum("total_amount"))["total_amount__sum"] or 0
+            )
 
-            branch_sales_summary.append({
-                "branch": branch,
-                "total_sales_records": total_sales_records,
-                "total_cash_sales": total_cash_sales,
-                "total_credit_sales": total_credit_sales,
-                "total_overall_sales": total_overall_sales,
-            })
+            branch_sales_summary.append(
+                {
+                    "branch": branch,
+                    "total_sales_records": total_sales_records,
+                    "total_cash_sales": total_cash_sales,
+                    "total_credit_sales": total_credit_sales,
+                    "total_overall_sales": total_overall_sales,
+                }
+            )
         context = {
             "branch_sales_summary": branch_sales_summary,
             "is_admin_or_manager": True,
@@ -146,16 +171,20 @@ def sales_dashboard(request):
         user_branch = request.user.branch
         if not user_branch:
             messages.error(request, "You are not assigned to any branch.")
-            return redirect("home:dashboard") # Redirect to a safe page
+            return redirect("home:dashboard")  # Redirect to a safe page
 
-        sales_records = SalesRecord.objects.filter(branch=user_branch).order_by("-sale_date")
+        sales_records = SalesRecord.objects.filter(branch=user_branch).order_by(
+            "-sale_date"
+        )
         context = {
             "sales_records": sales_records,
             "branch_name": user_branch.name,
             "is_admin_or_manager": False,
-            "can_create_sales": request.user.access_level == "sales", # Assuming 'sales' is the access_level for sales staff
+            "can_create_sales": request.user.access_level
+            == "sales",  # Assuming 'sales' is the access_level for sales staff
         }
         return render(request, "store/sales_detail.html", context)
+
 
 @login_required
 def sales_detail_branch(request, branch_pk):
@@ -163,7 +192,9 @@ def sales_detail_branch(request, branch_pk):
 
     # Ensure only admin/manager can access this detailed view directly
     if request.user.access_level not in ["admin", "manager"]:
-        messages.error(request, "You do not have permission to view other branch's sales details.")
+        messages.error(
+            request, "You do not have permission to view other branch's sales details."
+        )
         return redirect("store:sales_dashboard")
 
     sales_records = SalesRecord.objects.filter(branch=branch).order_by("-sale_date")
@@ -174,6 +205,7 @@ def sales_detail_branch(request, branch_pk):
     }
     return render(request, "store/sales_detail.html", context)
 
+
 @login_required
 def create_sales_record(request):
     # Only sales staff can create sales records
@@ -182,43 +214,65 @@ def create_sales_record(request):
         return redirect("store:sales_dashboard")
 
     if request.method == "POST":
-        form = SalesRecordForm(request.POST) # Removed request=request
-        formset = SalesItemFormSet(request.POST, instance=SalesRecord()) # Pass an empty instance for initial formset
+        form = SalesRecordForm(request.POST)  # Removed request=request
+        formset = SalesItemFormSet(
+            request.POST, instance=SalesRecord()
+        )  # Pass an empty instance for initial formset
         if form.is_valid() and formset.is_valid():
             sales_record = form.save(commit=False)
-            sales_record.branch = request.user.branch # Assign branch automatically
+            sales_record.branch = request.user.branch  # Assign branch automatically
             # Marketer is now a CharField, so it's saved directly by the form
             sales_record.save()
 
             total_amount = 0
             for item_form in formset:
-                if item_form.cleaned_data and not item_form.cleaned_data.get('DELETE'):
-                    vin = item_form.cleaned_data.get('vin')
-                    quantity = item_form.cleaned_data.get('quantity')
-                    price_at_sale = item_form.cleaned_data.get('price_at_sale')
+                if item_form.cleaned_data and not item_form.cleaned_data.get("DELETE"):
+                    vin = item_form.cleaned_data.get("vin")
+                    quantity = item_form.cleaned_data.get("quantity")
+                    price_at_sale = item_form.cleaned_data.get("price_at_sale")
 
                     try:
                         inventory_item = Inventory.objects.get(vin=vin)
                         if inventory_item.status == "sold":
-                            messages.error(request, f"Vehicle with VIN {vin} is already sold and cannot be re-sold.")
-                            return render(request, "store/create_sales_record.html", {"form": form, "formset": formset})
-                        
+                            messages.error(
+                                request,
+                                f"Vehicle with VIN {vin} is already sold and cannot be re-sold.",
+                            )
+                            return render(
+                                request,
+                                "store/create_sales_record.html",
+                                {"form": form, "formset": formset},
+                            )
+
                         sales_item = SalesItem.objects.create(
                             sales_record=sales_record,
                             inventory_item=inventory_item,
-                            price_at_sale=price_at_sale
+                            price_at_sale=price_at_sale,
                         )
                         total_amount += sales_item.price_at_sale
-                        
+
                         # Update inventory status to "sold"
                         inventory_item.status = "sold"
-                        inventory_item.save() # This will trigger the custom save method in Inventory model
+                        inventory_item.save()  # This will trigger the custom save method in Inventory model
                     except Inventory.DoesNotExist:
-                        messages.error(request, f"No inventory item found with VIN: {vin}.")
-                        return render(request, "store/create_sales_record.html", {"form": form, "formset": formset})
+                        messages.error(
+                            request, f"No inventory item found with VIN: {vin}."
+                        )
+                        return render(
+                            request,
+                            "store/create_sales_record.html",
+                            {"form": form, "formset": formset},
+                        )
                     except ValueError as e:
-                        messages.error(request, f"Error updating inventory status for VIN {vin}: {e}")
-                        return render(request, "store/create_sales_record.html", {"form": form, "formset": formset})
+                        messages.error(
+                            request,
+                            f"Error updating inventory status for VIN {vin}: {e}",
+                        )
+                        return render(
+                            request,
+                            "store/create_sales_record.html",
+                            {"form": form, "formset": formset},
+                        )
 
             sales_record.total_amount = total_amount
             sales_record.save()
@@ -226,7 +280,7 @@ def create_sales_record(request):
             messages.success(request, "Sales record created successfully.")
             return redirect("store:sales_dashboard")
     else:
-        form = SalesRecordForm() # Removed request=request
+        form = SalesRecordForm()  # Removed request=request
         formset = SalesItemFormSet(instance=SalesRecord())
 
     context = {
