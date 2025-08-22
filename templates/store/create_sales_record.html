@@ -1,0 +1,86 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}Create Sales Record{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Create New Sales Record</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Sales Record Details</h6>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+
+                <h5 class="mt-4">Inventory Items</h5>
+                {{ formset.management_form }}
+                <div id="formset-container">
+                    {% for item_form in formset %}
+                        <div class="formset-item card card-body mb-3">
+                            {{ item_form.as_p }}
+                            {% if item_form.instance.pk %}{{ item_form.DELETE }}{% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <button type="button" id="add-item" class="btn btn-info mb-3">Add Another Item</button>
+
+                <button type="submit" class="btn btn-primary">Create Sales Record</button>
+                <a href="{% url 'store:sales_dashboard' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addItemButton = document.getElementById('add-item');
+        const formsetContainer = document.getElementById('formset-container');
+        const totalForms = document.querySelector('#id_items-TOTAL_FORMS');
+
+        addItemButton.addEventListener('click', function() {
+            const currentForms = document.querySelectorAll('.formset-item').length;
+            const newForm = formsetContainer.children[0].cloneNode(true); // Clone the first form
+            
+            // Clear input values and update IDs/names for the new form
+            newForm.querySelectorAll('input, select, textarea').forEach(input => {
+                const oldId = input.id;
+                const oldName = input.name;
+
+                if (oldId) input.id = oldId.replace(/-\d+-/, `-${currentForms}-`);
+                if (oldName) input.name = oldName.replace(/-\d+-/, `-${currentForms}-`);
+                
+                if (input.type !== 'hidden' && input.name.includes('vin')) {
+                    input.value = ''; // Clear VIN field
+                } else if (input.type !== 'hidden' && input.name.includes('quantity')) {
+                    input.value = '1'; // Default quantity to 1
+                } else if (input.type !== 'hidden' && input.name.includes('price_at_sale')) {
+                    input.value = ''; // Clear price field
+                } else if (input.type !== 'hidden') {
+                    input.value = '';
+                }
+            });
+
+            // Update labels
+            newForm.querySelectorAll('label').forEach(label => {
+                const oldFor = label.htmlFor;
+                if (oldFor) label.htmlFor = oldFor.replace(/-\d+-/, `-${currentForms}-`);
+            });
+
+            formsetContainer.appendChild(newForm);
+            totalForms.value = parseInt(totalForms.value) + 1;
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% load humanize %}
+{% block title %}Sales Overview{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Sales Overview by Branch</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        {% for summary in branch_sales_summary %}
+        <div class="col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="h3 text-xs font-weight-bold text-primary text-uppercase mb-1 text-center">
+                                {{ summary.branch.name }}
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800 mb-2">
+                                <i class="fas fa-receipt mr-2"></i> Total Sales Records: {{ summary.total_sales_records }}
+                            </div>
+                            <div class="text-muted mb-1">
+                                <i class="fas fa-money-bill-wave mr-2"></i> Cash Sales: ₦{{ summary.total_cash_sales|floatformat:2 }}
+                            </div>
+                            <div class="text-muted mb-1">
+                                <i class="fas fa-credit-card mr-2"></i> Credit Sales: ₦{{ summary.total_credit_sales|floatformat:2 }}
+                            </div>
+                            <div class="text-muted mb-2">
+                                <i class="fas fa-chart-line mr-2"></i> Overall Sales: ₦{{ summary.total_overall_sales|floatformat:2 }}
+                            </div>
+                            <a href="{% url 'store:sales_detail_branch' branch_pk=summary.branch.pk %}" class="btn btn-sm btn-primary mt-2">View Details</a>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-store fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p>No sales data available for any branches.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

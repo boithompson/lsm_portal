@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Inventory
-from .forms import InventoryForm
+from .models import Inventory, SalesRecord, SalesItem
+from .forms import InventoryForm, SalesRecordForm, SalesItemFormSet
 from accounts.models import Branch
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.contrib import messages
+from django.http import JsonResponse # Potentially useful for AJAX later, but not strictly needed for initial implementation
 
 
 @login_required
@@ -89,3 +90,123 @@ def inventory_list(request):
         "selected_branch": branch_filter,
     }
     return render(request, "store/inventory_list.html", context)
+
+
+@login_required
+def sales_dashboard(request):
+    if request.user.access_level in ["admin", "manager"]:
+        # Admin and Manager see an overview of all branches
+        branches = Branch.objects.all()
+        branch_sales_summary = []
+
+        for branch in branches:
+            total_sales_records = SalesRecord.objects.filter(branch=branch).count()
+            total_cash_sales = SalesRecord.objects.filter(branch=branch).aggregate(Sum('amount_paid_cash'))['amount_paid_cash__sum'] or 0
+            total_credit_sales = SalesRecord.objects.filter(branch=branch).aggregate(Sum('credit_owned'))['credit_owned__sum'] or 0
+            total_overall_sales = SalesRecord.objects.filter(branch=branch).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+
+            branch_sales_summary.append({
+                "branch": branch,
+                "total_sales_records": total_sales_records,
+                "total_cash_sales": total_cash_sales,
+                "total_credit_sales": total_credit_sales,
+                "total_overall_sales": total_overall_sales,
+            })
+        context = {
+            "branch_sales_summary": branch_sales_summary,
+            "is_admin_or_manager": True,
+        }
+        return render(request, "store/sales_overview.html", context)
+    else:
+        # Other staff see only their branch's sales records
+        user_branch = request.user.branch
+        if not user_branch:
+            messages.error(request, "You are not assigned to any branch.")
+            return redirect("home:dashboard") # Redirect to a safe page
+
+        sales_records = SalesRecord.objects.filter(branch=user_branch).order_by("-sale_date")
+        context = {
+            "sales_records": sales_records,
+            "branch_name": user_branch.name,
+            "is_admin_or_manager": False,
+            "can_create_sales": request.user.access_level == "sales", # Assuming 'sales' is the access_level for sales staff
+        }
+        return render(request, "store/sales_detail.html", context)
+
+@login_required
+def sales_detail_branch(request, branch_pk):
+    branch = get_object_or_404(Branch, pk=branch_pk)
+
+    # Ensure only admin/manager can access this detailed view directly
+    if request.user.access_level not in ["admin", "manager"]:
+        messages.error(request, "You do not have permission to view other branch's sales details.")
+        return redirect("store:sales_dashboard")
+
+    sales_records = SalesRecord.objects.filter(branch=branch).order_by("-sale_date")
+    context = {
+        "sales_records": sales_records,
+        "branch_name": branch.name,
+        "is_admin_or_manager": True,
+    }
+    return render(request, "store/sales_detail.html", context)
+
+@login_required
+def create_sales_record(request):
+    # Only sales staff can create sales records
+    if request.user.access_level != "sales":
+        messages.error(request, "You do not have permission to create sales records.")
+        return redirect("store:sales_dashboard")
+
+    if request.method == "POST":
+        form = SalesRecordForm(request.POST) # Removed request=request
+        formset = SalesItemFormSet(request.POST, instance=SalesRecord()) # Pass an empty instance for initial formset
+        if form.is_valid() and formset.is_valid():
+            sales_record = form.save(commit=False)
+            sales_record.branch = request.user.branch # Assign branch automatically
+            # Marketer is now a CharField, so it's saved directly by the form
+            sales_record.save()
+
+            total_amount = 0
+            for item_form in formset:
+                if item_form.cleaned_data and not item_form.cleaned_data.get('DELETE'):
+                    vin = item_form.cleaned_data.get('vin')
+                    quantity = item_form.cleaned_data.get('quantity')
+                    price_at_sale = item_form.cleaned_data.get('price_at_sale')
+
+                    try:
+                        inventory_item = Inventory.objects.get(vin=vin)
+                        if inventory_item.status == "sold":
+                            messages.error(request, f"Vehicle with VIN {vin} is already sold and cannot be re-sold.")
+                            return render(request, "store/create_sales_record.html", {"form": form, "formset": formset})
+                        
+                        sales_item = SalesItem.objects.create(
+                            sales_record=sales_record,
+                            inventory_item=inventory_item,
+                            price_at_sale=price_at_sale
+                        )
+                        total_amount += sales_item.price_at_sale
+                        
+                        # Update inventory status to "sold"
+                        inventory_item.status = "sold"
+                        inventory_item.save() # This will trigger the custom save method in Inventory model
+                    except Inventory.DoesNotExist:
+                        messages.error(request, f"No inventory item found with VIN: {vin}.")
+                        return render(request, "store/create_sales_record.html", {"form": form, "formset": formset})
+                    except ValueError as e:
+                        messages.error(request, f"Error updating inventory status for VIN {vin}: {e}")
+                        return render(request, "store/create_sales_record.html", {"form": form, "formset": formset})
+
+            sales_record.total_amount = total_amount
+            sales_record.save()
+
+            messages.success(request, "Sales record created successfully.")
+            return redirect("store:sales_dashboard")
+    else:
+        form = SalesRecordForm() # Removed request=request
+        formset = SalesItemFormSet(instance=SalesRecord())
+
+    context = {
+        "form": form,
+        "formset": formset,
+    }
+    return render(request, "store/create_sales_record.html", context)

@@ -1,0 +1,77 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% load humanize %}
+{% block title %}Sales Records - {{ branch_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Sales Records for {{ branch_name }}</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    {% if can_create_sales %}
+    <div class="mb-4">
+        <a href="{% url 'store:create_sales_record' %}" class="btn btn-success">Create New Sales Record</a>
+    </div>
+    {% endif %}
+
+    {% if sales_records %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Sales Records</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Customer Name</th>
+                            <th>Contact</th>
+                            <th>Marketer</th>
+                            <th>Sale Date</th>
+                            <th>Items</th>
+                            <th>Cash Paid</th>
+                            <th>Credit Paid</th>
+                            <th>Total Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in sales_records %}
+                        <tr>
+                            <td>{{ record.customer_name }}</td>
+                            <td>{{ record.customer_contact|default:"N/A" }}</td>
+                            <td>{{ record.marketer|default:"N/A" }}</td>
+                            <td>{{ record.sale_date|date:"Y-m-d H:i" }}</td>
+                            <td>
+                                <ul>
+                                    {% for item in record.items.all %}
+                                        <li>{{ item.quantity }} x {{ item.inventory_item.make }} {{ item.inventory_item.model }} @ ₦{{ item.price_at_sale|floatformat:2 }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td>₦{{ record.amount_paid_cash|intcomma }}</td>
+                            <td>₦{{ record.credit_owned|intcomma }}</td>
+                            <td>₦{{ record.total_amount|intcomma }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <p>No sales records found for this branch.</p>
+    {% endif %}
+
+    {% if is_admin_or_manager %}
+    <div class="mt-4">
+        <a href="{% url 'store:sales_dashboard' %}" class="btn btn-secondary">Back to Sales Overview</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

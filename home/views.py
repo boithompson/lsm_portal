@@ -35,11 +35,6 @@ def dashboard(request):
 
 
 @login_required
-def sales(request):
-    return render(request, "home/sales.html")
-
-
-@login_required
 def staffs(request):
     if request.user.access_level not in ["admin", "manager"]:
         return redirect("home:dashboard")

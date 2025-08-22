@@ -113,8 +113,8 @@
                 <i class="fas fa-car fa-icon"></i> Inventory
             </a>
             </li>
-            <li class="nav-item d-none">
-            <a class="nav-link {% if 'sales' in request.path %}active{% endif %}" href="{% url 'home:sales' %}">
+            <li class="nav-item">
+            <a class="nav-link {% if 'sales' in request.path %}active{% endif %}" href="{% url 'store:sales_dashboard' %}">
                 <i class="fas fa-file-invoice-dollar fa-icon"></i> Sales
             </a>
             </li>
