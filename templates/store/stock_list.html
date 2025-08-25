@@ -1,0 +1,65 @@
+{% extends 'home/base.html' %}
+{% load humanize %}
+{% load custom_tags %}
+{% block title %}Stock List{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Stock Items</h1>
+    <a href="{% url 'store:add_stock' %}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+            class="fas fa-plus fa-sm text-white-50"></i> Add New Stock Item</a>
+    </div>
+
+    <form method="get" class="row g-3 my-3">
+        <div class="col-md-4">
+            <input type="text" name="q" placeholder="Search by name" class="form-control" value="{{ request.GET.q }}">
+        </div>
+        {% if branches %}
+        <div class="col-md-4">
+            <select name="branch" class="form-select">
+                <option value="">All Branches</option>
+                {% for branch in branches %}
+                    <option value="{{ branch.id }}" {% if selected_branch == branch.id|stringformat:"s" %}selected{% endif %}>{{ branch.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Quantity</th>
+                    <th>Unit Value</th>
+                    <th>Branch</th>
+                    <th>Total Value</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in stock_items %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₦{{ item.unit_value|intcomma }}</td>
+                    <td>{{ item.branch.name }}</td>
+                    <td>₦{{ item.quantity|multiply:item.unit_value|intcomma }}</td>
+                    <td>
+                        <a href="{% url 'store:stock_detail' item.pk %}" class="btn btn-info btn-sm">View/Edit</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No stock items found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

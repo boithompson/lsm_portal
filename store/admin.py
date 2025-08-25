@@ -1,39 +1,27 @@
 from django.contrib import admin
-from .models import Inventory, SalesRecord, SalesItem
+from .models import Stock, SalesRecord, SalesItem
 
 
-@admin.register(Inventory)
-class InventoryAdmin(admin.ModelAdmin):
+@admin.register(Stock)
+class StockAdmin(admin.ModelAdmin):
     list_display = (
-        "vehicle_type",
-        "make",
-        "model",
-        "year",
+        "name",
+        "quantity",
+        "unit_value",
         "branch",
-        "status",
-        "price",
-        "image_tag",
+        "added_on",
     )
-    list_filter = ("branch", "status", "vehicle_type", "year")
-    search_fields = ("make", "model", "vin")
-
-    readonly_fields = ["image_tag"]
-
-    def image_tag(self, obj):
-        if obj.image:
-            return f'<img src="{obj.image.url}" width="100" height="60" style="object-fit:cover;" />'
-        return "No Image"
-
-    image_tag.allow_tags = True
-    image_tag.short_description = "Image"
+    list_filter = ("branch", "added_on")
+    search_fields = ("name", "branch__name")
 
 
 class SalesItemInline(admin.TabularInline):
     model = SalesItem
     extra = 1
     raw_id_fields = [
-        "inventory_item"
-    ]  # Use raw_id_fields for ForeignKey to avoid dropdown for many items
+        "stock_item"
+    ]
+    fields = ("stock_item", "quantity_sold", "price_at_sale")
 
 
 @admin.register(SalesRecord)
@@ -79,9 +67,9 @@ class SalesRecordAdmin(admin.ModelAdmin):
         instances = formset.save(commit=False)
         for instance in instances:
             if isinstance(instance, SalesItem):
-                # Ensure inventory_item is linked and status updated
-                if instance.inventory_item and instance.inventory_item.status != "sold":
-                    instance.inventory_item.status = "sold"
-                    instance.inventory_item.save()
+                # Update stock quantity
+                if instance.stock_item and instance.quantity_sold:
+                    instance.stock_item.quantity -= instance.quantity_sold
+                    instance.stock_item.save()
             instance.save()
         formset.save_m2m()

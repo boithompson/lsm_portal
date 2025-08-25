@@ -59,13 +59,22 @@ def add_staff(request):
 @login_required
 def edit_staff(request, user_id):
     if request.user.access_level not in ["admin", "manager"]:
+        messages.error(request, "You do not have permission to edit staff.")
         return redirect("home:dashboard")
 
     staff_member = get_object_or_404(CustomUser, id=user_id)
+
+    # Managers cannot edit other managers or themselves
+    if request.user.access_level == "manager":
+        if staff_member.access_level == "manager" or staff_member.id == request.user.id:
+            messages.error(request, "Managers cannot edit other managers or their own details.")
+            return redirect("home:staffs")
+
     if request.method == "POST":
         form = StaffEditForm(request.POST, instance=staff_member, user=request.user)
         if form.is_valid():
             form.save()
+            messages.success(request, "Staff details updated successfully.")
             return redirect("home:staffs")
     else:
         form = StaffEditForm(instance=staff_member, user=request.user)

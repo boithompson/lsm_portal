@@ -20,7 +20,18 @@
         <div class="card-body">
             <form method="post">
                 {% csrf_token %}
-                {{ form.as_p }}
+                {% for field in form %}
+                    <div class="mb-3">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.help_text %}
+                            <div class="form-text">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
 
                 <h5 class="mt-4">Inventory Items</h5>
                 {{ formset.management_form }}
@@ -60,11 +71,11 @@
                 if (oldId) input.id = oldId.replace(/-\d+-/, `-${currentForms}-`);
                 if (oldName) input.name = oldName.replace(/-\d+-/, `-${currentForms}-`);
                 
-                if (input.type !== 'hidden' && input.name.includes('vin')) {
-                    input.value = ''; // Clear VIN field
-                } else if (input.type !== 'hidden' && input.name.includes('quantity')) {
+                if (input.tagName === 'SELECT') {
+                    input.selectedIndex = 0; // Reset select to first option
+                } else if (input.type === 'number' && input.name.includes('quantity_sold')) {
                     input.value = '1'; // Default quantity to 1
-                } else if (input.type !== 'hidden' && input.name.includes('price_at_sale')) {
+                } else if (input.type === 'number' && input.name.includes('price_at_sale')) {
                     input.value = ''; // Clear price field
                 } else if (input.type !== 'hidden') {
                     input.value = '';

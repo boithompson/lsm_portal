@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from .models import Inventory, SalesRecord, SalesItem
-from .forms import InventoryForm, SalesRecordForm, SalesItemFormSet
-from .export_forms import InventoryExportForm, SalesExportForm
+from .models import Stock, SalesRecord, SalesItem
+from .forms import StockForm, SalesRecordForm, SalesItemFormSet
+from .export_forms import StockExportForm, SalesExportForm
 from accounts.models import Branch
 from django.db.models import Q, Sum
 from django.contrib import messages
@@ -16,87 +16,85 @@ from django.views import View
 
 
 @login_required
-def add_inventory(request):
+def add_stock(request):
     # Only allow admin, sales, and manager users
     if request.user.access_level not in ["admin", "manager"]:
-        messages.error(request, "You do not have permission to add inventory.")
-        return redirect("store:inventory_list")
+        messages.error(request, "You do not have permission to add stock.")
+        return redirect("store:stock_list")
 
     if request.method == "POST":
-        form = InventoryForm(request.POST, request.FILES, user=request.user)
+        form = StockForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
-            inventory = form.save(commit=False)
+            stock = form.save(commit=False)
 
             # For non-admins, assign branch automatically
             if request.user.access_level != "admin":
-                inventory.branch = request.user.branch
+                stock.branch = request.user.branch
 
-            inventory.save()
-            messages.success(request, "Inventory added successfully.")
-            return redirect("store:inventory_list")
+            stock.save()
+            messages.success(request, "Stock added successfully.")
+            return redirect("store:stock_list")
     else:
-        form = InventoryForm(user=request.user)
+        form = StockForm(user=request.user)
 
-    return render(request, "store/add_inventory.html", {"form": form})
+    return render(request, "store/add_stock.html", {"form": form})
 
 
 @login_required
-def inventory_detail(request, pk):
-    inventory = get_object_or_404(Inventory, pk=pk)
+def stock_detail(request, pk):
+    stock = get_object_or_404(Stock, pk=pk)
 
     if request.method == "POST":
-        # Only allow admin and manager users to update inventory
+        # Only allow admin and manager users to update stock
         if request.user.access_level not in ["admin", "manager"]:
-            messages.error(request, "You do not have permission to update inventory.")
-            return redirect("store:inventory_detail", pk=inventory.pk)
+            messages.error(request, "You do not have permission to update stock.")
+            return redirect("store:stock_detail", pk=stock.pk)
 
-        form = InventoryForm(
-            request.POST, request.FILES, instance=inventory, user=request.user
+        form = StockForm(
+            request.POST, request.FILES, instance=stock, user=request.user
         )
         if form.is_valid():
-            inventory = form.save(commit=False)
+            stock = form.save(commit=False)
 
             # Prevent branch change if not admin
             if request.user.access_level != "admin":
-                inventory.branch = request.user.branch
+                stock.branch = request.user.branch
 
-            inventory.save()
-            messages.success(request, "Inventory updated successfully.")
-            return redirect("store:inventory_detail", pk=inventory.pk)
+            stock.save()
+            messages.success(request, "Stock updated successfully.")
+            return redirect("store:stock_detail", pk=stock.pk)
     else:
-        form = InventoryForm(instance=inventory, user=request.user)
+        form = StockForm(instance=stock, user=request.user)
 
     return render(
-        request, "store/inventory_detail.html", {"form": form, "inventory": inventory}
+        request, "store/stock_detail.html", {"form": form, "stock": stock}
     )
 
 
 @login_required
-def inventory_list(request):
-    inventories = Inventory.objects.all()
+def stock_list(request):
+    stock_items = Stock.objects.all()
     branch_filter = request.GET.get("branch")
     query = request.GET.get("q")
 
     # Apply branch filter if specified
     if branch_filter:
-        inventories = inventories.filter(branch_id=branch_filter)
+        stock_items = stock_items.filter(branch_id=branch_filter)
 
     if query:
-        inventories = inventories.filter(
-            Q(make__icontains=query)
-            | Q(model__icontains=query)
-            | Q(vin__icontains=query)
+        stock_items = stock_items.filter(
+            Q(name__icontains=query)
         )
 
     # Show all branches to everyone for filtering purposes
     branches = Branch.objects.all()
 
     context = {
-        "inventories": inventories,
+        "stock_items": stock_items,
         "branches": branches,
         "selected_branch": branch_filter,
     }
-    return render(request, "store/inventory_list.html", context)
+    return render(request, "store/stock_list.html", context)
 
 
 @login_required
@@ -217,60 +215,38 @@ def create_sales_record(request):
         return redirect("store:sales_dashboard")
 
     if request.method == "POST":
-        form = SalesRecordForm(request.POST)  # Removed request=request
+        form = SalesRecordForm(request.POST)
         formset = SalesItemFormSet(
-            request.POST, instance=SalesRecord()
-        )  # Pass an empty instance for initial formset
+            request.POST, instance=SalesRecord(), form_kwargs={"branch": request.user.branch}
+        )
         if form.is_valid() and formset.is_valid():
             sales_record = form.save(commit=False)
-            sales_record.branch = request.user.branch  # Assign branch automatically
-            # Marketer is now a CharField, so it's saved directly by the form
+            sales_record.branch = request.user.branch
             sales_record.save()
 
             total_amount = 0
             for item_form in formset:
                 if item_form.cleaned_data and not item_form.cleaned_data.get("DELETE"):
-                    vin = item_form.cleaned_data.get("vin")
-                    quantity = item_form.cleaned_data.get("quantity")
-                    price_at_sale = item_form.cleaned_data.get("price_at_sale")
-
                     try:
-                        inventory_item = Inventory.objects.get(vin=vin)
-                        if inventory_item.status == "sold":
-                            messages.error(
-                                request,
-                                f"Vehicle with VIN {vin} is already sold and cannot be re-sold.",
-                            )
-                            return render(
-                                request,
-                                "store/create_sales_record.html",
-                                {"form": form, "formset": formset},
-                            )
-
-                        sales_item = SalesItem.objects.create(
-                            sales_record=sales_record,
-                            inventory_item=inventory_item,
-                            price_at_sale=price_at_sale,
-                        )
-                        total_amount += sales_item.price_at_sale
-
-                        # Update inventory status to "sold"
-                        inventory_item.status = "sold"
-                        inventory_item.save()  # This will trigger the custom save method in Inventory model
-                    except Inventory.DoesNotExist:
-                        messages.error(
-                            request, f"No inventory item found with VIN: {vin}."
-                        )
+                        sales_item = item_form.save(commit=False)
+                        sales_item.sales_record = sales_record
+                        sales_item.save()
+                        total_amount += sales_item.price_at_sale * sales_item.quantity_sold
+                    except ValueError as e:
+                        messages.error(request, f"Error processing sale: {e}")
+                        # If there's a stock error, delete the sales record and return
+                        sales_record.delete()
                         return render(
                             request,
                             "store/create_sales_record.html",
                             {"form": form, "formset": formset},
                         )
-                    except ValueError as e:
+                    except Exception as e:
                         messages.error(
                             request,
-                            f"Error updating inventory status for VIN {vin}: {e}",
+                            f"Error processing sale for item: {e}",
                         )
+                        sales_record.delete()
                         return render(
                             request,
                             "store/create_sales_record.html",
@@ -282,9 +258,12 @@ def create_sales_record(request):
 
             messages.success(request, "Sales record created successfully.")
             return redirect("store:sales_dashboard")
+        else:
+            # If form or formset is not valid, errors will be displayed in the template
+            pass
     else:
-        form = SalesRecordForm()  # Removed request=request
-        formset = SalesItemFormSet(instance=SalesRecord())
+        form = SalesRecordForm()
+        formset = SalesItemFormSet(instance=SalesRecord(), form_kwargs={"branch": request.user.branch})
 
     context = {
         "form": form,
@@ -293,15 +272,15 @@ def create_sales_record(request):
     return render(request, "store/create_sales_record.html", context)
 
 
-class InventoryExportView(LoginRequiredMixin, UserPassesTestMixin, View):
+class StockExportView(LoginRequiredMixin, UserPassesTestMixin, View):
     raise_exception = True # Raise 403 if test_func returns False
 
     def test_func(self):
-        return self.request.user.access_level in ["admin", "manager"]
+        return self.request.user.access_level in ["admin", "manager", "sales"]
 
     def get(self, request):
-        form = InventoryExportForm(request.GET)
-        inventories = Inventory.objects.all()
+        form = StockExportForm(request.GET)
+        stock_items = Stock.objects.all()
 
         if form.is_valid():
             start_date = form.cleaned_data.get('start_date')
@@ -309,17 +288,17 @@ class InventoryExportView(LoginRequiredMixin, UserPassesTestMixin, View):
             fields_to_export = form.cleaned_data.get('fields_to_export')
 
             if start_date:
-                inventories = inventories.filter(added_on__gte=start_date)
+                stock_items = stock_items.filter(added_on__gte=start_date)
             if end_date:
-                inventories = inventories.filter(added_on__lte=end_date)
+                stock_items = stock_items.filter(added_on__lte=end_date)
 
             if 'export' in request.GET:
                 response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-                response['Content-Disposition'] = 'attachment; filename="inventory_export.xlsx"'
+                response['Content-Disposition'] = 'attachment; filename="stock_export.xlsx"'
 
                 workbook = Workbook()
                 worksheet = workbook.active
-                worksheet.title = "Inventory"
+                worksheet.title = "Stock"
 
                 # Apply styles
                 header_font = Font(bold=True)
@@ -327,7 +306,7 @@ class InventoryExportView(LoginRequiredMixin, UserPassesTestMixin, View):
                 center_aligned_text = Alignment(horizontal="center")
 
                 # Write headers
-                headers = [Inventory._meta.get_field(field_name).verbose_name for field_name in fields_to_export]
+                headers = [Stock._meta.get_field(field_name).verbose_name for field_name in fields_to_export]
                 worksheet.append(headers)
                 for col in range(1, len(headers) + 1):
                     worksheet.cell(row=1, column=col).font = header_font
@@ -335,7 +314,7 @@ class InventoryExportView(LoginRequiredMixin, UserPassesTestMixin, View):
                     worksheet.cell(row=1, column=col).alignment = center_aligned_text
 
                 # Write data
-                for item in inventories:
+                for item in stock_items:
                     row_data = []
                     for field_name in fields_to_export:
                         value = getattr(item, field_name)
@@ -357,21 +336,21 @@ class InventoryExportView(LoginRequiredMixin, UserPassesTestMixin, View):
         template_headers = []
         if form.is_valid() and fields_to_export:
             for field_name in fields_to_export:
-                template_headers.append(Inventory._meta.get_field(field_name).verbose_name)
+                template_headers.append(Stock._meta.get_field(field_name).verbose_name)
 
         context = {
             'form': form,
-            'inventories': inventories,
+            'stock_items': stock_items,
             'template_headers': template_headers,
         }
-        return render(request, 'store/inventory_export.html', context)
+        return render(request, 'store/stock_export.html', context)
 
 
 class SalesExportView(LoginRequiredMixin, UserPassesTestMixin, View):
     raise_exception = True # Raise 403 if test_func returns False
 
     def test_func(self):
-        return self.request.user.access_level in ["admin", "manager"]
+        return self.request.user.access_level in ["admin", "manager", "sales"]
 
     def get(self, request):
         form = SalesExportForm(request.GET)
@@ -403,8 +382,10 @@ class SalesExportView(LoginRequiredMixin, UserPassesTestMixin, View):
                 # Write headers
                 headers = []
                 for field_name in fields_to_export:
-                    if field_name == 'inventory_item_vin': # Custom field for VIN
-                        headers.append('Inventory Item VIN')
+                    if field_name == 'stock_item_name': # Custom field for Stock Item Name
+                        headers.append('Stock Item Name')
+                    elif field_name == 'quantity_sold':
+                        headers.append('Quantity Sold')
                     else:
                         headers.append(SalesRecord._meta.get_field(field_name).verbose_name)
                 worksheet.append(headers)
@@ -417,10 +398,14 @@ class SalesExportView(LoginRequiredMixin, UserPassesTestMixin, View):
                 for record in sales_records:
                     row_data = []
                     for field_name in fields_to_export:
-                        if field_name == 'inventory_item_vin':
+                        if field_name == 'stock_item_name':
                             sales_items = SalesItem.objects.filter(sales_record=record)
-                            vins = ", ".join([item.inventory_item.vin for item in sales_items])
-                            row_data.append(vins)
+                            stock_names = ", ".join([f"{item.stock_item.name} (x{item.quantity_sold})" for item in sales_items])
+                            row_data.append(stock_names)
+                        elif field_name == 'quantity_sold':
+                            sales_items = SalesItem.objects.filter(sales_record=record)
+                            total_quantity_sold = sum([item.quantity_sold for item in sales_items])
+                            row_data.append(total_quantity_sold)
                         else:
                             value = getattr(record, field_name)
                             # Convert non-primitive Django model objects to their string representation
@@ -441,8 +426,10 @@ class SalesExportView(LoginRequiredMixin, UserPassesTestMixin, View):
         template_headers = []
         if form.is_valid() and fields_to_export:
             for field_name in fields_to_export:
-                if field_name == 'inventory_item_vin':
-                    template_headers.append('Inventory Item VIN')
+                if field_name == 'stock_item_name':
+                    template_headers.append('Stock Item Name')
+                elif field_name == 'quantity_sold':
+                    template_headers.append('Quantity Sold')
                 else:
                     template_headers.append(SalesRecord._meta.get_field(field_name).verbose_name)
 

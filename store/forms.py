@@ -1,39 +1,28 @@
 from django import forms
-from .models import Inventory, SalesRecord, SalesItem, Branch
+from .models import Stock, SalesRecord, SalesItem, Branch
 from django.forms import inlineformset_factory
 from django.core.exceptions import ValidationError
 
 
-class InventoryForm(forms.ModelForm):
+class StockForm(forms.ModelForm):
     class Meta:
-        model = Inventory
-        exclude = ["added_on"]
+        model = Stock
+        fields = ["name", "quantity", "unit_value", "branch"]
         widgets = {
-            "vehicle_type": forms.Select(attrs={"class": "form-select"}),
-            "make": forms.TextInput(attrs={"class": "form-control"}),
-            "model": forms.TextInput(attrs={"class": "form-control"}),
-            "year": forms.NumberInput(attrs={"class": "form-control"}),
-            "vin": forms.TextInput(attrs={"class": "form-control"}),
-            "color": forms.TextInput(attrs={"class": "form-control"}),
-            "mileage": forms.NumberInput(attrs={"class": "form-control"}),
-            "image": forms.FileInput(attrs={"class": "form-control"}),
-            "price": forms.NumberInput(attrs={"class": "form-control"}),
-            "status": forms.Select(attrs={"class": "form-select"}),
-            "description": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "quantity": forms.NumberInput(attrs={"class": "form-control"}),
+            "unit_value": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
         }
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop("user", None)  # Pass the request.user when initializing
+        user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
-        # Style branch field even if hidden later
         self.fields["branch"].widget.attrs["class"] = "form-select"
 
         if user and user.access_level != "admin":
-            # Hide the branch field for non-admins (set it in the view)
             self.fields["branch"].widget = forms.HiddenInput()
         else:
-            # Admin can select the branch
             self.fields["branch"].queryset = Branch.objects.all()
 
 
@@ -52,9 +41,11 @@ class SalesRecordForm(forms.ModelForm):
             "marketer",
             "amount_paid_cash",
             "credit_owed",
+            "bank_paid",
         ]
         widgets = {
             "customer_name": forms.TextInput(attrs={"class": "form-control"}),
+            "bank_paid": forms.TextInput(attrs={"class": "form-control"}),
             "customer_contact": forms.TextInput(attrs={"class": "form-control"}),
             "amount_paid_cash": forms.NumberInput(
                 attrs={"class": "form-control", "step": "0.01"}
@@ -66,37 +57,34 @@ class SalesRecordForm(forms.ModelForm):
 
 
 class SalesItemForm(forms.ModelForm):
-    vin = forms.CharField(
-        max_length=100, widget=forms.TextInput(attrs={"class": "form-control"})
-    )
-
     class Meta:
         model = SalesItem
-        fields = ["vin", "price_at_sale"]  # Changed from inventory_item to vin
+        fields = ["stock_item", "quantity_sold", "price_at_sale"]
         widgets = {
+            "stock_item": forms.Select(attrs={"class": "form-select"}),
+            "quantity_sold": forms.NumberInput(attrs={"class": "form-control", "min": "1"}),
             "price_at_sale": forms.NumberInput(
                 attrs={"class": "form-control", "step": "0.01"}
             ),
         }
 
-    def clean_vin(self):
-        vin = self.cleaned_data["vin"]
-        try:
-            inventory_item = Inventory.objects.get(vin=vin)
-            if inventory_item.status != "available":
-                raise ValidationError(
-                    f"Vehicle with VIN {vin} is not available for sale (status: {inventory_item.status})."
-                )
-        except Inventory.DoesNotExist:
-            raise ValidationError(f"No inventory item found with VIN: {vin}.")
-        return vin
-
     def __init__(self, *args, **kwargs):
+        self.branch = kwargs.pop("branch", None)
         super().__init__(*args, **kwargs)
-        # Remove the inventory_item field from the base fields as it's replaced by vin
-        self.fields.pop("inventory_item", None)
-        # Add the custom vin field back
-        self.fields["vin"] = self.base_fields["vin"]
+        if self.branch:
+            self.fields["stock_item"].queryset = Stock.objects.filter(branch=self.branch)
+        else:
+            self.fields["stock_item"].queryset = Stock.objects.none()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        stock_item = cleaned_data.get("stock_item")
+        quantity_sold = cleaned_data.get("quantity_sold")
+
+        if stock_item and quantity_sold:
+            if stock_item.quantity < quantity_sold:
+                self.add_error("quantity_sold", f"Only {stock_item.quantity} of {stock_item.name} available in stock.")
+        return cleaned_data
 
 
 SalesItemFormSet = inlineformset_factory(

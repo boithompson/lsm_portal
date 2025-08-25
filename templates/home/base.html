@@ -115,8 +115,8 @@
             </a>
             </li>
             <li class="nav-item">
-            <a class="nav-link {% if 'inventory' in request.path %}active{% endif %}" href="{% url 'store:inventory_list' %}">
-                <i class="fas fa-car fa-icon"></i> Inventory
+            <a class="nav-link {% if 'stock' in request.path %}active{% endif %}" href="{% url 'store:stock_list' %}">
+                <i class="fas fa-car fa-icon"></i> Stock
             </a>
             </li>
             <li class="nav-item">
@@ -135,8 +135,8 @@
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="exportDropdown">
                     <li>
-                        <a class="dropdown-item" href="{% url 'store:inventory_export' %}">
-                            Export Inventory
+                        <a class="dropdown-item" href="{% url 'store:stock_export' %}">
+                            Export Stock
                         </a>
                     </li>
                     <li>

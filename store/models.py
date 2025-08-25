@@ -6,56 +6,20 @@ User = get_user_model()
 import uuid
 
 
-class Inventory(models.Model):
-    VEHICLE_TYPE_CHOICES = [
-        ("car", "Car"),
-        ("truck", "Truck"),
-        ("bus", "Bus"),
-        ("van", "Van"),
-        ("suv", "SUV"),
-        ("motorcycle", "Motorcycle"),
-        ("other", "Other"),
-    ]
-
-    STATUS_CHOICES = [
-        ("available", "Available"),
-        ("sold", "Sold"),
-        ("reserved", "Reserved"),
-        ("maintenance", "Under Maintenance"),
-    ]
-
+class Stock(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    branch = models.ForeignKey(
-        Branch, on_delete=models.CASCADE, related_name="inventories"
-    )
-    vehicle_type = models.CharField(max_length=20, choices=VEHICLE_TYPE_CHOICES)
-    make = models.CharField(max_length=100)  # e.g., Toyota, Ford
-    model = models.CharField(max_length=100)  # e.g., Camry, Ranger
-    year = models.PositiveIntegerField()
-    vin = models.CharField("Chassis/VIN", max_length=100, unique=True)
-    color = models.CharField(max_length=50)
-    mileage = models.PositiveIntegerField()
-    image = models.ImageField(upload_to="inventory_images/", blank=True, null=True)
-    price = models.DecimalField(max_digits=12, decimal_places=2)
-    status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default="available"
-    )
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name="stock_items")
+    name = models.CharField(max_length=255)
+    quantity = models.IntegerField(default=0)
+    unit_value = models.DecimalField(max_digits=12, decimal_places=2)
     added_on = models.DateTimeField(auto_now_add=True)
-    description = models.TextField(blank=True, null=True)
 
     class Meta:
-        ordering = ["-added_on"]
-
-    def save(self, *args, **kwargs):
-        if not self._state.adding:  # if object already exists (not being added for the first time)
-            original_inventory = Inventory.objects.get(pk=self.pk)
-            if original_inventory.status == "sold" and self.status != "sold":
-                # If it was sold, and now trying to change to something else, prevent it
-                raise ValueError("Cannot change status of a sold item.")
-        super().save(*args, **kwargs)
+        ordering = ["name"]
+        verbose_name_plural = "Stock"
 
     def __str__(self):
-        return f"{self.make} {self.model} ({self.year}) - {self.branch.name}"
+        return f"{self.name} ({self.quantity}) - {self.branch.name}"
 
 
 class SalesRecord(models.Model):
@@ -67,17 +31,18 @@ class SalesRecord(models.Model):
     customer_contact = models.CharField(max_length=200, blank=True, null=True)
     marketer = models.CharField(
         max_length=200, blank=True, null=True
-    )  # Changed to CharField
+    )
     sale_date = models.DateTimeField(auto_now_add=True)
     amount_paid_cash = models.DecimalField(
         max_digits=12, decimal_places=2, default=0.00
     )
     credit_owed = models.DecimalField(
         max_digits=12, decimal_places=2, default=0.00
-    )  # Changed from credit_owed
+    )
     total_amount = models.DecimalField(
         max_digits=12, decimal_places=2, default=0.00
-    )  # This will be calculated
+    )
+    bank_paid = models.CharField(max_length=200, blank=True, null=True)
 
     class Meta:
         ordering = ["-sale_date"]
@@ -90,10 +55,19 @@ class SalesItem(models.Model):
     sales_record = models.ForeignKey(
         SalesRecord, on_delete=models.CASCADE, related_name="items"
     )
-    inventory_item = models.ForeignKey(Inventory, on_delete=models.CASCADE)
+    stock_item = models.ForeignKey(Stock, on_delete=models.CASCADE, null=True, blank=True)
+    quantity_sold = models.IntegerField(default=1)
     price_at_sale = models.DecimalField(
         max_digits=12, decimal_places=2
-    )  # Price of the item at the time of sale
+    )
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:  # Only deduct stock for new sales items
+            if self.stock_item.quantity < self.quantity_sold:
+                raise ValueError("Not enough stock available.")
+            self.stock_item.quantity -= self.quantity_sold
+            self.stock_item.save()
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.inventory_item.make} {self.inventory_item.model} for Sale {self.sales_record.id}"
+        return f"{self.stock_item.name} (x{self.quantity_sold}) for Sale {self.sales_record.id}"

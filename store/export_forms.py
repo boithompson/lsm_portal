@@ -1,18 +1,18 @@
 from django import forms
-from .models import Inventory, SalesRecord, SalesItem
+from .models import Stock, SalesRecord, SalesItem
 
-class InventoryExportForm(forms.Form):
+class StockExportForm(forms.Form):
     start_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
     end_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        inventory_fields = [(field.name, field.verbose_name) for field in Inventory._meta.fields]
+        stock_fields = [(field.name, field.verbose_name) for field in Stock._meta.fields]
         self.fields['fields_to_export'] = forms.MultipleChoiceField(
-            choices=inventory_fields,
+            choices=stock_fields,
             widget=forms.CheckboxSelectMultiple,
             required=False,
-            initial=[field.name for field in Inventory._meta.fields]
+            initial=[field.name for field in Stock._meta.fields]
         )
 
 class SalesExportForm(forms.Form):
@@ -21,13 +21,13 @@ class SalesExportForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Include fields from SalesRecord and related SalesItem (VIN)
         sales_record_fields = [(field.name, field.verbose_name) for field in SalesRecord._meta.fields]
         
-        # Add a custom field for Inventory Item VIN from SalesItem
-        # This assumes SalesRecord has a reverse relation to SalesItem (salesitem_set)
-        # and SalesItem has a foreign key to Inventory (inventory_item)
-        custom_fields = [('inventory_item_vin', 'Inventory Item VIN')]
+        # Add custom fields for Stock Item Name and Quantity Sold from SalesItem
+        custom_fields = [
+            ('stock_item_name', 'Stock Item Name'),
+            ('quantity_sold', 'Quantity Sold')
+        ]
         
         all_fields = sales_record_fields + custom_fields
 

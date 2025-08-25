@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.forms import inlineformset_factory
 from accounts.models import CustomUser, Branch
 from workshop.models import Vehicle, JobSheet, InternalEstimate, EstimatePart
-from store.models import Inventory  # Import Inventory model
+from store.models import Stock  # Import Stock model
 from django.contrib import messages
 from workshop.forms import (
     VehicleForm,
@@ -21,13 +21,13 @@ def dashboard(request):
     branch_inventory_data = []
 
     for branch in branches:
-        available_inventory_count = Inventory.objects.filter(
-            branch=branch, status="available"
+        total_stock_items = Stock.objects.filter(
+            branch=branch
         ).count()
         branch_inventory_data.append(
             {
                 "branch_name": branch.name,
-                "available_inventory_count": available_inventory_count,
+                "total_stock_items": total_stock_items,
                 "branch_id": branch.id,
             }
         )

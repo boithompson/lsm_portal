@@ -1,10 +1,10 @@
 {% extends "home/base.html" %}
 {% load static %}
-{% block title %}Inventory Detail{% endblock %}
+{% block title %}Stock Detail{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Inventory Detail: {{ inventory.make }} {{ inventory.model }}</h2>
+    <h2>Stock Detail: {{ stock.name }}</h2>
 
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -24,7 +24,7 @@
         {% if request.user.access_level == "admin" or request.user.access_level == "manager" %}
             <button type="submit" class="btn btn-success">Update</button>
         {% endif %}
-        <a href="{% url 'store:inventory_list' %}" class="btn btn-secondary">Back</a>
+        <a href="{% url 'store:stock_list' %}" class="btn btn-secondary">Back</a>
     </form>
 </div>
 {% endblock %}
