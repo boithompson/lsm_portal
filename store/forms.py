@@ -11,7 +11,9 @@ class StockForm(forms.ModelForm):
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
             "quantity": forms.NumberInput(attrs={"class": "form-control"}),
-            "unit_value": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
+            "unit_value": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.01"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -62,7 +64,9 @@ class SalesItemForm(forms.ModelForm):
         fields = ["stock_item", "quantity_sold", "price_at_sale"]
         widgets = {
             "stock_item": forms.Select(attrs={"class": "form-select"}),
-            "quantity_sold": forms.NumberInput(attrs={"class": "form-control", "min": "1"}),
+            "quantity_sold": forms.NumberInput(
+                attrs={"class": "form-control", "min": "1"}
+            ),
             "price_at_sale": forms.NumberInput(
                 attrs={"class": "form-control", "step": "0.01"}
             ),
@@ -72,7 +76,9 @@ class SalesItemForm(forms.ModelForm):
         self.branch = kwargs.pop("branch", None)
         super().__init__(*args, **kwargs)
         if self.branch:
-            self.fields["stock_item"].queryset = Stock.objects.filter(branch=self.branch)
+            self.fields["stock_item"].queryset = Stock.objects.filter(
+                branch=self.branch
+            )
         else:
             self.fields["stock_item"].queryset = Stock.objects.none()
 
@@ -83,7 +89,10 @@ class SalesItemForm(forms.ModelForm):
 
         if stock_item and quantity_sold:
             if stock_item.quantity < quantity_sold:
-                self.add_error("quantity_sold", f"Only {stock_item.quantity} of {stock_item.name} available in stock.")
+                self.add_error(
+                    "quantity_sold",
+                    f"Only {stock_item.quantity} of {stock_item.name} available in stock.",
+                )
         return cleaned_data
 
 

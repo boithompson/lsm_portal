@@ -21,9 +21,7 @@ def dashboard(request):
     branch_inventory_data = []
 
     for branch in branches:
-        total_stock_items = Stock.objects.filter(
-            branch=branch
-        ).count()
+        total_stock_items = Stock.objects.filter(branch=branch).count()
         branch_inventory_data.append(
             {
                 "branch_name": branch.name,

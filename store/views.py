@@ -50,9 +50,7 @@ def stock_detail(request, pk):
             messages.error(request, "You do not have permission to update stock.")
             return redirect("store:stock_detail", pk=stock.pk)
 
-        form = StockForm(
-            request.POST, request.FILES, instance=stock, user=request.user
-        )
+        form = StockForm(request.POST, request.FILES, instance=stock, user=request.user)
         if form.is_valid():
             stock = form.save(commit=False)
 
@@ -66,9 +64,7 @@ def stock_detail(request, pk):
     else:
         form = StockForm(instance=stock, user=request.user)
 
-    return render(
-        request, "store/stock_detail.html", {"form": form, "stock": stock}
-    )
+    return render(request, "store/stock_detail.html", {"form": form, "stock": stock})
 
 
 @login_required
@@ -82,9 +78,7 @@ def stock_list(request):
         stock_items = stock_items.filter(branch_id=branch_filter)
 
     if query:
-        stock_items = stock_items.filter(
-            Q(name__icontains=query)
-        )
+        stock_items = stock_items.filter(Q(name__icontains=query))
 
     # Show all branches to everyone for filtering purposes
     branches = Branch.objects.all()
@@ -217,7 +211,9 @@ def create_sales_record(request):
     if request.method == "POST":
         form = SalesRecordForm(request.POST)
         formset = SalesItemFormSet(
-            request.POST, instance=SalesRecord(), form_kwargs={"branch": request.user.branch}
+            request.POST,
+            instance=SalesRecord(),
+            form_kwargs={"branch": request.user.branch},
         )
         if form.is_valid() and formset.is_valid():
             sales_record = form.save(commit=False)
@@ -231,7 +227,9 @@ def create_sales_record(request):
                         sales_item = item_form.save(commit=False)
                         sales_item.sales_record = sales_record
                         sales_item.save()
-                        total_amount += sales_item.price_at_sale * sales_item.quantity_sold
+                        total_amount += (
+                            sales_item.price_at_sale * sales_item.quantity_sold
+                        )
                     except ValueError as e:
                         messages.error(request, f"Error processing sale: {e}")
                         # If there's a stock error, delete the sales record and return
@@ -263,7 +261,9 @@ def create_sales_record(request):
             pass
     else:
         form = SalesRecordForm()
-        formset = SalesItemFormSet(instance=SalesRecord(), form_kwargs={"branch": request.user.branch})
+        formset = SalesItemFormSet(
+            instance=SalesRecord(), form_kwargs={"branch": request.user.branch}
+        )
 
     context = {
         "form": form,
@@ -273,7 +273,7 @@ def create_sales_record(request):
 
 
 class StockExportView(LoginRequiredMixin, UserPassesTestMixin, View):
-    raise_exception = True # Raise 403 if test_func returns False
+    raise_exception = True  # Raise 403 if test_func returns False
 
     def test_func(self):
         return self.request.user.access_level in ["admin", "manager", "sales"]
@@ -283,18 +283,22 @@ class StockExportView(LoginRequiredMixin, UserPassesTestMixin, View):
         stock_items = Stock.objects.all()
 
         if form.is_valid():
-            start_date = form.cleaned_data.get('start_date')
-            end_date = form.cleaned_data.get('end_date')
-            fields_to_export = form.cleaned_data.get('fields_to_export')
+            start_date = form.cleaned_data.get("start_date")
+            end_date = form.cleaned_data.get("end_date")
+            fields_to_export = form.cleaned_data.get("fields_to_export")
 
             if start_date:
                 stock_items = stock_items.filter(added_on__gte=start_date)
             if end_date:
                 stock_items = stock_items.filter(added_on__lte=end_date)
 
-            if 'export' in request.GET:
-                response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-                response['Content-Disposition'] = 'attachment; filename="stock_export.xlsx"'
+            if "export" in request.GET:
+                response = HttpResponse(
+                    content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+                response["Content-Disposition"] = (
+                    'attachment; filename="stock_export.xlsx"'
+                )
 
                 workbook = Workbook()
                 worksheet = workbook.active
@@ -302,11 +306,19 @@ class StockExportView(LoginRequiredMixin, UserPassesTestMixin, View):
 
                 # Apply styles
                 header_font = Font(bold=True)
-                thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+                thin_border = Border(
+                    left=Side(style="thin"),
+                    right=Side(style="thin"),
+                    top=Side(style="thin"),
+                    bottom=Side(style="thin"),
+                )
                 center_aligned_text = Alignment(horizontal="center")
 
                 # Write headers
-                headers = [Stock._meta.get_field(field_name).verbose_name for field_name in fields_to_export]
+                headers = [
+                    Stock._meta.get_field(field_name).verbose_name
+                    for field_name in fields_to_export
+                ]
                 worksheet.append(headers)
                 for col in range(1, len(headers) + 1):
                     worksheet.cell(row=1, column=col).font = header_font
@@ -319,19 +331,25 @@ class StockExportView(LoginRequiredMixin, UserPassesTestMixin, View):
                     for field_name in fields_to_export:
                         value = getattr(item, field_name)
                         # Convert non-primitive Django model objects to their string representation
-                        if hasattr(value, '__str__') and not isinstance(value, (str, int, float, bool, datetime)):
+                        if hasattr(value, "__str__") and not isinstance(
+                            value, (str, int, float, bool, datetime)
+                        ):
                             row_data.append(str(value))
                         elif isinstance(value, datetime) and timezone.is_aware(value):
-                            row_data.append(timezone.make_naive(value)) # Convert to naive datetime
+                            row_data.append(
+                                timezone.make_naive(value)
+                            )  # Convert to naive datetime
                         else:
                             row_data.append(value)
                     worksheet.append(row_data)
                     for col in range(1, len(row_data) + 1):
-                        worksheet.cell(row=worksheet.max_row, column=col).border = thin_border
+                        worksheet.cell(row=worksheet.max_row, column=col).border = (
+                            thin_border
+                        )
 
                 workbook.save(response)
                 return response
-        
+
         # Prepare headers for template preview
         template_headers = []
         if form.is_valid() and fields_to_export:
@@ -339,15 +357,15 @@ class StockExportView(LoginRequiredMixin, UserPassesTestMixin, View):
                 template_headers.append(Stock._meta.get_field(field_name).verbose_name)
 
         context = {
-            'form': form,
-            'stock_items': stock_items,
-            'template_headers': template_headers,
+            "form": form,
+            "stock_items": stock_items,
+            "template_headers": template_headers,
         }
-        return render(request, 'store/stock_export.html', context)
+        return render(request, "store/stock_export.html", context)
 
 
 class SalesExportView(LoginRequiredMixin, UserPassesTestMixin, View):
-    raise_exception = True # Raise 403 if test_func returns False
+    raise_exception = True  # Raise 403 if test_func returns False
 
     def test_func(self):
         return self.request.user.access_level in ["admin", "manager", "sales"]
@@ -357,18 +375,22 @@ class SalesExportView(LoginRequiredMixin, UserPassesTestMixin, View):
         sales_records = SalesRecord.objects.all()
 
         if form.is_valid():
-            start_date = form.cleaned_data.get('start_date')
-            end_date = form.cleaned_data.get('end_date')
-            fields_to_export = form.cleaned_data.get('fields_to_export')
+            start_date = form.cleaned_data.get("start_date")
+            end_date = form.cleaned_data.get("end_date")
+            fields_to_export = form.cleaned_data.get("fields_to_export")
 
             if start_date:
                 sales_records = sales_records.filter(sale_date__gte=start_date)
             if end_date:
                 sales_records = sales_records.filter(sale_date__lte=end_date)
 
-            if 'export' in request.GET:
-                response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-                response['Content-Disposition'] = 'attachment; filename="sales_export.xlsx"'
+            if "export" in request.GET:
+                response = HttpResponse(
+                    content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+                response["Content-Disposition"] = (
+                    'attachment; filename="sales_export.xlsx"'
+                )
 
                 workbook = Workbook()
                 worksheet = workbook.active
@@ -376,18 +398,27 @@ class SalesExportView(LoginRequiredMixin, UserPassesTestMixin, View):
 
                 # Apply styles
                 header_font = Font(bold=True)
-                thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+                thin_border = Border(
+                    left=Side(style="thin"),
+                    right=Side(style="thin"),
+                    top=Side(style="thin"),
+                    bottom=Side(style="thin"),
+                )
                 center_aligned_text = Alignment(horizontal="center")
 
                 # Write headers
                 headers = []
                 for field_name in fields_to_export:
-                    if field_name == 'stock_item_name': # Custom field for Stock Item Name
-                        headers.append('Stock Item Name')
-                    elif field_name == 'quantity_sold':
-                        headers.append('Quantity Sold')
+                    if (
+                        field_name == "stock_item_name"
+                    ):  # Custom field for Stock Item Name
+                        headers.append("Stock Item Name")
+                    elif field_name == "quantity_sold":
+                        headers.append("Quantity Sold")
                     else:
-                        headers.append(SalesRecord._meta.get_field(field_name).verbose_name)
+                        headers.append(
+                            SalesRecord._meta.get_field(field_name).verbose_name
+                        )
                 worksheet.append(headers)
                 for col in range(1, len(headers) + 1):
                     worksheet.cell(row=1, column=col).font = header_font
@@ -398,26 +429,41 @@ class SalesExportView(LoginRequiredMixin, UserPassesTestMixin, View):
                 for record in sales_records:
                     row_data = []
                     for field_name in fields_to_export:
-                        if field_name == 'stock_item_name':
+                        if field_name == "stock_item_name":
                             sales_items = SalesItem.objects.filter(sales_record=record)
-                            stock_names = ", ".join([f"{item.stock_item.name} (x{item.quantity_sold})" for item in sales_items])
+                            stock_names = ", ".join(
+                                [
+                                    f"{item.stock_item.name} (x{item.quantity_sold})"
+                                    for item in sales_items
+                                ]
+                            )
                             row_data.append(stock_names)
-                        elif field_name == 'quantity_sold':
+                        elif field_name == "quantity_sold":
                             sales_items = SalesItem.objects.filter(sales_record=record)
-                            total_quantity_sold = sum([item.quantity_sold for item in sales_items])
+                            total_quantity_sold = sum(
+                                [item.quantity_sold for item in sales_items]
+                            )
                             row_data.append(total_quantity_sold)
                         else:
                             value = getattr(record, field_name)
                             # Convert non-primitive Django model objects to their string representation
-                            if hasattr(value, '__str__') and not isinstance(value, (str, int, float, bool, datetime)):
+                            if hasattr(value, "__str__") and not isinstance(
+                                value, (str, int, float, bool, datetime)
+                            ):
                                 row_data.append(str(value))
-                            elif isinstance(value, datetime) and timezone.is_aware(value):
-                                row_data.append(timezone.make_naive(value)) # Convert to naive datetime
+                            elif isinstance(value, datetime) and timezone.is_aware(
+                                value
+                            ):
+                                row_data.append(
+                                    timezone.make_naive(value)
+                                )  # Convert to naive datetime
                             else:
                                 row_data.append(value)
                     worksheet.append(row_data)
                     for col in range(1, len(row_data) + 1):
-                        worksheet.cell(row=worksheet.max_row, column=col).border = thin_border
+                        worksheet.cell(row=worksheet.max_row, column=col).border = (
+                            thin_border
+                        )
 
                 workbook.save(response)
                 return response
@@ -426,16 +472,18 @@ class SalesExportView(LoginRequiredMixin, UserPassesTestMixin, View):
         template_headers = []
         if form.is_valid() and fields_to_export:
             for field_name in fields_to_export:
-                if field_name == 'stock_item_name':
-                    template_headers.append('Stock Item Name')
-                elif field_name == 'quantity_sold':
-                    template_headers.append('Quantity Sold')
+                if field_name == "stock_item_name":
+                    template_headers.append("Stock Item Name")
+                elif field_name == "quantity_sold":
+                    template_headers.append("Quantity Sold")
                 else:
-                    template_headers.append(SalesRecord._meta.get_field(field_name).verbose_name)
+                    template_headers.append(
+                        SalesRecord._meta.get_field(field_name).verbose_name
+                    )
 
         context = {
-            'form': form,
-            'sales_records': sales_records,
-            'template_headers': template_headers,
+            "form": form,
+            "sales_records": sales_records,
+            "template_headers": template_headers,
         }
-        return render(request, 'store/sales_export.html', context)
+        return render(request, "store/sales_export.html", context)

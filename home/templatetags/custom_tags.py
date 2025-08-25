@@ -19,7 +19,8 @@ def naira(value):
     except (ValueError, TypeError):
         return value
 
-@register.filter(name='get_attribute')
+
+@register.filter(name="get_attribute")
 def get_attribute(obj, attr_name):
     """
     Safely gets an attribute from an object.

@@ -18,9 +18,7 @@ class StockAdmin(admin.ModelAdmin):
 class SalesItemInline(admin.TabularInline):
     model = SalesItem
     extra = 1
-    raw_id_fields = [
-        "stock_item"
-    ]
+    raw_id_fields = ["stock_item"]
     fields = ("stock_item", "quantity_sold", "price_at_sale")
 
 

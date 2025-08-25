@@ -67,7 +67,9 @@ def edit_staff(request, user_id):
     # Managers cannot edit other managers or themselves
     if request.user.access_level == "manager":
         if staff_member.access_level == "manager" or staff_member.id == request.user.id:
-            messages.error(request, "Managers cannot edit other managers or their own details.")
+            messages.error(
+                request, "Managers cannot edit other managers or their own details."
+            )
             return redirect("home:staffs")
 
     if request.method == "POST":
