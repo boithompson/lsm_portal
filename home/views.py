@@ -7,6 +7,8 @@ from accounts.models import CustomUser, Branch
 from workshop.models import Vehicle, JobSheet, InternalEstimate, EstimatePart
 from store.models import Stock  # Import Stock model
 from django.contrib import messages
+from django.contrib.auth import logout
+from django.http import HttpResponse
 from workshop.forms import (
     VehicleForm,
     JobSheetForm,
@@ -257,3 +259,20 @@ def edit_internal_estimate(request, vehicle_id):
         "vehicle": vehicle,
     }
     return render(request, "home/edit_internal_estimate.html", context)
+
+
+def custom_404(request, exception):
+    logout(request)
+    return render(request, "404.html", {}, status=404)
+
+def custom_500(request):
+    logout(request)
+    return render(request, "500.html", {}, status=500)
+
+def custom_403(request, exception):
+    logout(request)
+    return render(request, "403.html", {}, status=403)
+
+def custom_400(request, exception):
+    logout(request)
+    return render(request, "400.html", {}, status=400)
