@@ -48,7 +48,7 @@
                             <td>
                                 <ul>
                                     {% for item in record.items.all %}
-                                        <li>{{ item.quantity }} x {{ item.inventory_item.make }} {{ item.inventory_item.model }} @ ₦{{ item.price_at_sale|floatformat:2 }}</li>
+                                        <li>{{ item.quantity_sold }} x {{ item.stock_item.name }} @ ₦{{ item.price_at_sale|intcomma }}</li>
                                     {% endfor %}
                                 </ul>
                             </td>
