@@ -50,8 +50,9 @@ def upload_stock_data(excel_file_path):
             except (ValueError, TypeError):
                 quantity = 0 # Default to 0 if quantity is not a valid number
 
-            if quantity == 0 and unit_value == Decimal('0.00'):
-                continue # Skip if both quantity and unit value are zero
+            if quantity == 0:
+                print(f"Skipping {product_name} at {branch_name} due to zero quantity.")
+                continue # Skip if quantity is zero
 
             # Get or create Branch
             branch, created = Branch.objects.get_or_create(name=branch_name)
