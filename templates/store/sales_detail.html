@@ -34,9 +34,6 @@
                             <th>Marketer</th>
                             <th>Sale Date</th>
                             <th>Items</th>
-                            <th>Cash Paid</th>
-                            <th>Credit</th>
-                            <th>Total Amount</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -48,13 +45,10 @@
                             <td>
                                 <ul>
                                     {% for item in record.items.all %}
-                                        <li>{{ item.quantity_sold }} x {{ item.stock_item.name }} @ ₦{{ item.price_at_sale|intcomma }}</li>
+                                        <li>{{ item.quantity_sold }} x {{ item.stock_item.name }}</li>
                                     {% endfor %}
                                 </ul>
                             </td>
-                            <td>₦{{ record.amount_paid_cash|intcomma }}</td>
-                            <td>₦{{ record.credit_owed|intcomma }}</td>
-                            <td>₦{{ record.total_amount|intcomma }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

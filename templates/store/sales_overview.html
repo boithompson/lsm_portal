@@ -45,13 +45,13 @@
                                 <i class="fas fa-receipt mr-2"></i> Total Sales Records: {{ summary.total_sales_records }}
                             </div>
                             <div class="text-muted mb-1">
-                                <i class="fas fa-money-bill-wave mr-2"></i> Cash Sales: ₦{{ summary.total_cash_sales|intcomma }}
+                                Total Cash Transactions: {{ summary.total_cash_sales }}
                             </div>
                             <div class="text-muted mb-1">
-                                <i class="fas fa-credit-card mr-2"></i> Credit Sales: ₦{{ summary.total_credit_sales|intcomma }}
+                                Total Credit Transactions: {{ summary.total_credit_sales }}
                             </div>
                             <div class="text-muted mb-2">
-                                <i class="fas fa-chart-line mr-2"></i> Overall Sales: ₦{{ summary.total_overall_sales|intcomma }}
+                                Total Transactions: {{ summary.total_overall_sales }}
                             </div>
                             <a href="{% url 'store:sales_detail_branch' branch_pk=summary.branch.pk %}" class="btn btn-sm btn-primary mt-2">View Details</a>
                         </div>

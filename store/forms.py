@@ -5,15 +5,17 @@ from django.core.exceptions import ValidationError
 
 
 class StockForm(forms.ModelForm):
+    unit_value = forms.DecimalField(
+        required=False,
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.01"})
+    )
+
     class Meta:
         model = Stock
         fields = ["name", "quantity", "unit_value", "branch"]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
             "quantity": forms.NumberInput(attrs={"class": "form-control"}),
-            "unit_value": forms.NumberInput(
-                attrs={"class": "form-control", "step": "0.01"}
-            ),
         }
 
     def __init__(self, *args, **kwargs):

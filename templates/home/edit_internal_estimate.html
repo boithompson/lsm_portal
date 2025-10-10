@@ -19,7 +19,6 @@
             <h5>Parts</h5>
             <div class="row">
                 <div class="col-md-5"><label>Part Name</label></div>
-                <div class="col-md-3"><label>Price</label></div>
                 <div class="col-md-2"><label>Quantity</label></div>
                 <div class="col-md-2"><label>Delete</label></div>
             </div>
@@ -28,7 +27,6 @@
                 {% for form in part_formset %}
                 <div class="row part-form">
                     <div class="col-md-5">{{ form.name }}</div>
-                    <div class="col-md-3">{{ form.price }}</div>
                     <div class="col-md-2">{{ form.quantity }}</div>
                     <div class="col-md-2">
                         {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
@@ -38,9 +36,6 @@
             </div>
             <button type="button" id="add-part-form" class="btn btn-secondary mt-3">Add Part</button>
             <hr>
-            <div class="text-end">
-                <h5>Grand Total: <span id="grand-total">0.00</span></h5>
-            </div>
             <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
             <a href="{% url 'home:vehicle_detail' vehicle.id %}" class="btn btn-secondary mt-3">Cancel</a>
         </form>
@@ -54,21 +49,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     const partForms = document.getElementById('part-forms');
     const addPartButton = document.getElementById('add-part-form');
-    const grandTotalSpan = document.getElementById('grand-total');
     const totalForms = document.querySelector('input[name$="-TOTAL_FORMS"]');
     let formNum = parseInt(totalForms.value);
 
-    function calculateTotal() {
-        let grandTotal = 0;
-        document.querySelectorAll('.part-form').forEach(function(form) {
-            const price = parseFloat(form.querySelector('input[name$="-price"]').value) || 0;
-            const quantity = parseInt(form.querySelector('input[name$="-quantity"]').value) || 0;
-            grandTotal += price * quantity;
-        });
-        grandTotalSpan.textContent = grandTotal.toFixed(2);
-    }
-
-    partForms.addEventListener('change', calculateTotal);
 
     addPartButton.addEventListener('click', function() {
         const formsetContainer = document.getElementById('part-forms');
@@ -76,7 +59,6 @@ document.addEventListener('DOMContentLoaded', function() {
         emptyForm.innerHTML = `
             <div class="row part-form">
                 <div class="col-md-5"><input type="text" name="estimatepart_set-${formNum}-name" class="form-control" /></div>
-                <div class="col-md-3"><input type="number" name="estimatepart_set-${formNum}-price" class="form-control" step="0.01" /></div>
                 <div class="col-md-2"><input type="number" name="estimatepart_set-${formNum}-quantity" class="form-control" value="1" /></div>
                 <div class="col-md-2"><input type="checkbox" name="estimatepart_set-${formNum}-DELETE" id="id_estimatepart_set-${formNum}-DELETE" /></div>
                 <input type="hidden" name="estimatepart_set-${formNum}-id" id="id_estimatepart_set-${formNum}-id" />
@@ -87,7 +69,6 @@ document.addEventListener('DOMContentLoaded', function() {
         totalForms.value = ++formNum;
     });
 
-    calculateTotal();
 });
 </script>
 {% endblock %}

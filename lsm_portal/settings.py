@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-*+al5wi2-y%dqe%!-4o!7+k3t(%ilt21g&*y@x3mgd%8m*t%1p"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     "lsmportal.pythonanywhere.com",
@@ -144,64 +144,64 @@ LOGIN_URL = "/"
 LOGIN_REDIRECT_URL = "dashboard/"
 LOGOUT_REDIRECT_URL = "/"
 
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "verbose": {
-            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
-            "style": "{",
-        },
-        "simple": {
-            "format": "{levelname} {message}",
-            "style": "{",
-        },
-    },
-    "handlers": {
-        "file": {
-            "level": "INFO",
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": os.path.join(BASE_DIR, "logs/django_app.log"),
-            "maxBytes": 1024 * 1024 * 5,  # 5 MB
-            "backupCount": 5,
-            "formatter": "verbose",
-        },
-        "console": {
-            "level": "INFO",
-            "class": "logging.StreamHandler",
-            "formatter": "simple",
-        },
-    },
-    "loggers": {
-        "django": {
-            "handlers": ["file", "console"],
-            "level": "INFO",
-            "propagate": False,
-        },
-        "accounts": {
-            "handlers": ["file", "console"],
-            "level": "INFO",
-            "propagate": False,
-        },
-        "home": {
-            "handlers": ["file", "console"],
-            "level": "INFO",
-            "propagate": False,
-        },
-        "workshop": {
-            "handlers": ["file", "console"],
-            "level": "INFO",
-            "propagate": False,
-        },
-        "store": {
-            "handlers": ["file", "console"],
-            "level": "INFO",
-            "propagate": False,
-        },
-        "": {
-            "handlers": ["file", "console"],
-            "level": "INFO",
-            "propagate": False,
-        },
-    },
-}
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
+#     "formatters": {
+#         "verbose": {
+#             "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+#             "style": "{",
+#         },
+#         "simple": {
+#             "format": "{levelname} {message}",
+#             "style": "{",
+#         },
+#     },
+#     "handlers": {
+#         "file": {
+#             "level": "INFO",
+#             "class": "logging.handlers.RotatingFileHandler",
+#             "filename": os.path.join(BASE_DIR, "logs/django_app.log"),
+#             "maxBytes": 1024 * 1024 * 5,  # 5 MB
+#             "backupCount": 5,
+#             "formatter": "verbose",
+#         },
+#         "console": {
+#             "level": "INFO",
+#             "class": "logging.StreamHandler",
+#             "formatter": "simple",
+#         },
+#     },
+#     "loggers": {
+#         "django": {
+#             "handlers": ["file", "console"],
+#             "level": "INFO",
+#             "propagate": False,
+#         },
+#         "accounts": {
+#             "handlers": ["file", "console"],
+#             "level": "INFO",
+#             "propagate": False,
+#         },
+#         "home": {
+#             "handlers": ["file", "console"],
+#             "level": "INFO",
+#             "propagate": False,
+#         },
+#         "workshop": {
+#             "handlers": ["file", "console"],
+#             "level": "INFO",
+#             "propagate": False,
+#         },
+#         "store": {
+#             "handlers": ["file", "console"],
+#             "level": "INFO",
+#             "propagate": False,
+#         },
+#         "": {
+#             "handlers": ["file", "console"],
+#             "level": "INFO",
+#             "propagate": False,
+#         },
+#     },
+# }
