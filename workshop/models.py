@@ -1,6 +1,7 @@
 from django.db import models
 from accounts.models import CustomUser, Branch
 import uuid
+from decimal import Decimal # Import Decimal for precise calculations
 
 
 class Vehicle(models.Model):
@@ -66,6 +67,14 @@ class InternalEstimate(models.Model):
     vehicle = models.OneToOneField(
         Vehicle, on_delete=models.CASCADE, related_name="internal_estimate"
     )
+    apply_vat = models.BooleanField(default=False) # New field
+    vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00')) # New field
+    total_with_vat = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00')) # New field
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._original_vat_amount = self.vat_amount
+        self._original_total_with_vat = self.total_with_vat
 
     def __str__(self):
         return f"Internal Estimate for {self.vehicle}"
@@ -73,9 +82,18 @@ class InternalEstimate(models.Model):
     @property
     def grand_total(self):
         total = 0
-        for estimate_part in self.estimatepart_set.all():
-            total += estimate_part.price * estimate_part.quantity
+        # Ensure the instance is saved before accessing related objects
+        if self.pk:
+            for estimate_part in self.estimatepart_set.all():
+                total += estimate_part.price * estimate_part.quantity
         return total
+
+    def save(self, *args, **kwargs):
+        # Only call super().save() here. VAT calculation will be handled by signals.
+        super().save(*args, **kwargs)
+        # Update original values after saving for signal comparison
+        self._original_vat_amount = self.vat_amount
+        self._original_total_with_vat = self.total_with_vat
 
 
 class EstimatePart(models.Model):

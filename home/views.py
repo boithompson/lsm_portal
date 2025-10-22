@@ -54,7 +54,22 @@ def staffs(request):
     return render(request, "home/staffs.html", context)
 
 
+from django.contrib.auth.mixins import AccessMixin
+from functools import wraps
+
+def workshop_access_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect("accounts:login") # Redirect to login if not authenticated
+        if request.user.access_level not in ["admin", "workshop", "procurement"]:
+            messages.error(request, "You do not have permission to access this page.")
+            return redirect("home:dashboard")
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
 @login_required
+@workshop_access_required
 def workshop(request):
     query = request.GET.get("q")
     status = request.GET.get("status")
@@ -91,6 +106,7 @@ def workshop(request):
 
 
 @login_required
+@workshop_access_required
 def vehicle_detail(request, vehicle_id):
     vehicle = Vehicle.objects.get(id=vehicle_id)
     context = {
@@ -100,6 +116,7 @@ def vehicle_detail(request, vehicle_id):
 
 
 @login_required
+@workshop_access_required
 def add_vehicle(request):
     if request.method == "POST":
         form = VehicleForm(request.POST, request.FILES)
@@ -137,6 +154,7 @@ def add_vehicle(request):
 
 
 @login_required
+@workshop_access_required
 def edit_vehicle(request, vehicle_id):
     vehicle = Vehicle.objects.get(id=vehicle_id)
     if request.method == "POST":
@@ -153,6 +171,7 @@ def edit_vehicle(request, vehicle_id):
 
 
 @login_required
+@workshop_access_required
 def update_vehicle_status(request, vehicle_id):
     vehicle = Vehicle.objects.get(id=vehicle_id)
     if request.method == "POST":
@@ -164,6 +183,7 @@ def update_vehicle_status(request, vehicle_id):
 
 
 @login_required
+@workshop_access_required
 def delete_vehicle(request, vehicle_id):
     vehicle = Vehicle.objects.get(id=vehicle_id)
     if request.user.access_level == "admin" or request.user.access_level == "manager":
@@ -172,6 +192,7 @@ def delete_vehicle(request, vehicle_id):
 
 
 @login_required
+@workshop_access_required
 def create_job_sheet(request, vehicle_id):
     vehicle = Vehicle.objects.get(id=vehicle_id)
     if request.method == "POST":
@@ -191,6 +212,7 @@ def create_job_sheet(request, vehicle_id):
 
 
 @login_required
+@workshop_access_required
 def edit_job_sheet(request, vehicle_id):
     vehicle = Vehicle.objects.get(id=vehicle_id)
     job_sheet = JobSheet.objects.get(vehicle=vehicle)
@@ -209,6 +231,7 @@ def edit_job_sheet(request, vehicle_id):
 
 
 @login_required
+@workshop_access_required
 def create_internal_estimate(request, vehicle_id):
     vehicle = Vehicle.objects.get(id=vehicle_id)
     EstimatePartFormSet = inlineformset_factory(
@@ -219,14 +242,43 @@ def create_internal_estimate(request, vehicle_id):
         if form.is_valid():
             internal_estimate = form.save(commit=False)
             internal_estimate.vehicle = vehicle
-            internal_estimate.save()
+            internal_estimate.save() # Save the InternalEstimate instance first to get a PK
+
             formset = EstimatePartFormSet(request.POST, instance=internal_estimate)
             if formset.is_valid():
                 formset.save()
+                messages.success(request, "Internal Estimate created successfully.")
                 return redirect("home:vehicle_detail", vehicle_id=vehicle.id)
+            else:
+                messages.error(request, "Error creating estimate parts. Please check the form for errors.")
+                # If formset is invalid, re-render the form with errors
+                # Ensure formset is re-initialized with the instance for rendering
+                formset = EstimatePartFormSet(request.POST, instance=internal_estimate)
+                context = {
+                    "form": form,
+                    "part_formset": formset,
+                    "vehicle": vehicle,
+                }
+                return render(request, "home/create_internal_estimate.html", context)
+        else:
+            messages.error(request, "Error creating internal estimate. Please check the form for errors.")
+            # If form is invalid, re-render the form with errors
+            # Re-initialize formset with the unsaved internal_estimate for rendering
+            internal_estimate = form.save(commit=False) # Get the unsaved instance from the invalid form
+            internal_estimate.vehicle = vehicle # Ensure vehicle is set
+            formset = EstimatePartFormSet(request.POST, instance=internal_estimate)
+            context = {
+                "form": form,
+                "part_formset": formset,
+                "vehicle": vehicle,
+            }
+            return render(request, "home/create_internal_estimate.html", context)
     else:
-        form = InternalEstimateForm()
-        formset = EstimatePartFormSet()
+        # For GET request, always create a new unsaved instance for the form
+        internal_estimate = InternalEstimate(vehicle=vehicle)
+        form = InternalEstimateForm(instance=internal_estimate)
+        formset = EstimatePartFormSet(instance=internal_estimate)
+
     context = {
         "form": form,
         "part_formset": formset,
@@ -236,6 +288,7 @@ def create_internal_estimate(request, vehicle_id):
 
 
 @login_required
+@workshop_access_required
 def edit_internal_estimate(request, vehicle_id):
     vehicle = Vehicle.objects.get(id=vehicle_id)
     internal_estimate = InternalEstimate.objects.get(vehicle=vehicle)
@@ -249,7 +302,12 @@ def edit_internal_estimate(request, vehicle_id):
             formset = EstimatePartFormSet(request.POST, instance=internal_estimate)
             if formset.is_valid():
                 formset.save()
+                messages.success(request, "Internal Estimate updated successfully.")
                 return redirect("home:vehicle_detail", vehicle_id=vehicle.id)
+            else:
+                messages.error(request, "Error updating estimate parts. Please check the form for errors.")
+        else:
+            messages.error(request, "Error updating internal estimate. Please check the form for errors.")
     else:
         form = InternalEstimateForm(instance=internal_estimate)
         formset = EstimatePartFormSet(instance=internal_estimate)

@@ -61,13 +61,18 @@ class JobSheetForm(forms.ModelForm):
 class InternalEstimateForm(forms.ModelForm):
     class Meta:
         model = InternalEstimate
-        fields = []
+        fields = ['apply_vat'] # Add apply_vat field
+        widgets = {
+            'apply_vat': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
 
 
 class EstimatePartForm(forms.ModelForm):
+    id = forms.IntegerField(required=False, widget=forms.HiddenInput())
+
     class Meta:
         model = EstimatePart
-        fields = ["name", "price", "quantity"]
+        fields = ["id", "name", "price", "quantity"]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
             "price": forms.NumberInput(attrs={"class": "form-control"}),

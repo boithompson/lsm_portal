@@ -1,0 +1,312 @@
+{% load static %}
+{% load custom_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proforma Invoice - {{ vehicle.licence_plate }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+
+        body {
+            font-family: "Helvetica", "Arial", sans-serif;
+            background-color: #fff;
+            color: #000;
+            margin: 0;
+            padding: 0;
+            font-size: 12px; /* Set base font size for body */
+        }
+
+        p {
+            font-size: 12px;
+        }
+
+        .invoice-wrapper {
+            width: 210mm;
+            margin: auto;
+            padding: 20px 30px;
+            border: 1px solid #000;
+        }
+
+        /* Header */
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .invoice-header img {
+            width: 120px;
+            height: auto;
+        }
+
+        .invoice-header h2 {
+            font-size: 20px;
+            text-transform: uppercase;
+            text-align: right;
+        }
+
+        /* Info Section */
+        .info-section {
+            width: 100%;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #000;
+        }
+
+        .info-table td {
+            vertical-align: top;
+            width: 50%;
+            border: 1px solid #000;
+            padding: 0;
+        }
+
+        .info-block {
+            padding: 8px;
+        }
+
+        .info-block h3 {
+            font-size: 15px;
+            text-decoration: underline;
+            margin-bottom: 5px;
+        }
+
+        table.details {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #000;
+            margin-bottom: 10px;
+        }
+
+        table.details td {
+            border: 1px solid #000;
+            padding: 6px 8px;
+            font-size: 12px; /* Changed from 13px to 12px */
+        }
+
+        table.details td:first-child {
+            font-weight: bold;
+            width: 40%;
+        }
+
+        /* Parts Table */
+        table.parts {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #000;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        table.parts th, table.parts td {
+            border: 1px solid #000;
+            padding: 6px 8px;
+            font-size: 12px; /* Changed from 13px to 12px */
+            text-align: left;
+        }
+
+        table.parts th {
+            background-color: #f0f0f0;
+        }
+
+        .total-row {
+            font-weight: bold;
+        }
+
+        /* Footer */
+        .footer-note {
+            margin-top: 30px;
+            font-size: 13px;
+            text-align: center;
+            border-top: 1px solid #000;
+            padding-top: 10px;
+        }
+
+        /* Print button */
+        .print-btn-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .print-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .print-btn:hover {
+            background-color: #0056b3;
+        }
+
+        @media print {
+            .print-btn-container { display: none; }
+            body { margin: 0; }
+            .invoice-wrapper { border: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-wrapper">
+
+        <!-- Header -->
+        <div class="invoice-header">
+            <div>
+                <img src="{% static 'img/logo.jpg' %}" alt="Company Logo">
+            </div>
+            <div>
+                <p><i>Distributors of:</i></p> 					
+				<hr />			
+                <p>
+                    <b>Truck Centre:</b> Plot C88, Amuwo-Odofin Commercial Scheme, Coker Bus stop, Oshodi- Apapa Express Way, Lagos.
+                    <br/>					
+                    <b>After sales Service:</b>08038276704, 08073991903, 0807 229 2900, 0807 399 1906, 0807 229 2913
+                    <br/>					
+                    <b>Lekki Office:</b> Block 94, Plot 1D, Ogungbe/Providence Way, Lekki Phase 1, 0807 229 2908
+                    <br/>					
+                    ·       <b>NISSAN , TOYOTA, MACK, KIA, YUTONG, ZHONGTONG, JINBEI, HONDA,   SANY</b>		
+                    <br/>			
+                    <b>Head Office: 15, Alhaji Tokan St. Alaka Bus-stop, Western Avenue, Surulere, Lagos, Nigeria.</b>
+                    <br/>				
+                    Tel: 0807 399 1900, 0807 399 1878. E-mail: lanreshittu@lanreshittu.com, www.lanreshittu.com
+                </p>												
+            </div>
+        </div>
+        <div style="width:60%; margin:0 auto; text-align:center;">
+            <h2>BRANCHES</h2>							
+            <p>
+            Abuja: Tel: 0807 229 2919, 0807 069 0006   PHC: Tel: 0807 399 1882
+            Ilorin: Tel: 0807 399 1901   Kano: Tel: 0807 399 1886 Lagos: Tel: 0803 307 9026
+            </p>
+        </div>
+        <!-- Customer (Company) & Vehicle Info in Table Layout -->
+        <div style="text-align: center;">
+            <h1 style="background:#f5f5f5; padding:12px 16px; border-radius:6px; text-align:center; font-size:18px; margin:10px 0; display: inline-block;">PROFORMA INVOICE</h1>
+        </div>
+        <div class="info-section">
+            <table class="info-table">
+                <tr>
+                    <td>
+                        <div class="info-block">
+                            <h3>Company (Customer) Details</h3>
+                            <table class="details">
+                                <tr><td>Company Name:</td><td>{{ vehicle.customer_name }}</td></tr>
+                                <tr><td>Address:</td><td>{{ vehicle.address }}</td></tr>
+                                <tr><td>Phone:</td><td>{{ vehicle.phone }}</td></tr>
+                                <tr><td>Date:</td><td>{{ date_now|date:"Y-m-d" }}</td></tr>
+                            </table>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="info-block">
+                            <h3>Vehicle Details</h3>
+                            <table class="details">
+                                <tr><td>Make:</td><td>{{ vehicle.vehicle_make }}</td></tr>
+                                <tr><td>Model:</td><td>{{ vehicle.model }}</td></tr>
+                                <tr><td>Year:</td><td>{{ vehicle.year }}</td></tr>
+                                <tr><td>Chassis No:</td><td>{{ vehicle.chasis_no }}</td></tr>
+                                <tr><td>License Plate:</td><td>{{ vehicle.licence_plate }}</td></tr>
+                                <tr><td>Mileage:</td><td>{{ vehicle.mileage }}</td></tr>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Parts Table -->
+        <h3 style="border-bottom:1px solid #000; margin-bottom:8px;">Estimate Parts</h3>
+        <table class="parts">
+            <thead>
+                <tr>
+                    <th>S/N</th>
+                    <th>Part Name</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for part in estimate_parts %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ part.name }}</td>
+                    <td>{{ part.quantity }}</td>
+                    <td>{{ part.price|naira }}</td>
+                    <td>{{ part.price|multiply:part.quantity|naira }}</td>
+                </tr>
+                {% endfor %}
+                <tr class="total-row">
+                    {% if vat_applied %}
+                        <td colspan="4" style="text-align:right;">Sub Total</td>
+                    {% else %}
+                        <td colspan="4" style="text-align:right;">Grand Total</td>
+                    {% endif %}
+                    <td>{{ internal_estimate.grand_total|naira }}</td>
+                </tr>
+                {% if vat_applied %}
+                <tr>
+                    <td colspan="4" style="text-align:right;">VAT (7.5%)</td>
+                    <td>{{ internal_estimate.vat_amount|naira }}</td>
+                </tr>
+                <tr class="total-row">
+                    <td colspan="4" style="text-align:right;">Total (with VAT)</td>
+                    <td>{{ internal_estimate.total_with_vat|naira }}</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+        <p>
+            <b>Amount in words:- </b><span style="color: red; text-decoration: underline;">
+            {% if vat_applied %}
+                {{ internal_estimate.total_with_vat|num_to_words }}
+            {% else %}
+                {{ internal_estimate.grand_total|num_to_words }}
+            {% endif %} Naira Only</span>
+        </p>
+        <p>
+            <b>Note:</b>&nbsp;&nbsp;&nbsp;&nbsp;This estimate was based on visual inspection, if any other damages are found in the course of repairs; a supplementary estimate will be prepared for your approval.
+            <br/>
+            a.&nbsp;&nbsp;&nbsp;&nbsp;<b>Validity period is ONE weeks only.</b>
+            <br/>						
+            b.&nbsp;&nbsp;&nbsp;&nbsp;A deposit of 75% will be required before commencement of repairs or any maintenance as the case may be.						
+            <br/>
+            c.&nbsp;&nbsp;&nbsp;&nbsp;Parking fee of =N= 2000 naira per day if repairs are not approved within two weeks from the day the customer receives the estimate.						
+            <br/>
+            d.&nbsp;&nbsp;&nbsp;&nbsp;Customer will pay an estimate charge (that will be determined) in the case of vehicle withdrawal.						
+            <br/>
+            e.&nbsp;&nbsp;&nbsp;&nbsp;Prices of parts or materials are subject to change without prior notice to customers.						
+            <br/>
+            f.&nbsp;&nbsp;&nbsp;&nbsp;<b>Payment can be made in Lanre Shittu Motors Nig. Ltd account no. 0060603874 Access Bank</b>						
+		</p>					
+        <div style="margin-top: 100px; display: flex; justify-content: space-between;">
+            <div style="width: 300px; text-align: center; border-top: 1px solid #000; padding-top: 5px;">
+            <p style="font-size: 16px; font-weight: 700; margin-bottom: 5px;">Rafiu Adelani Ogunlowo</p>
+            <p style="font-weight: bold;">Workshop Manager</p>
+            </div>	
+            <div style="width: 300px; text-align: center; border-top: 1px solid #000; padding-top: 5px;">
+            <p style="font-size: 16px; font-weight: 700; margin-bottom: 5px;">GBENGA ONI</p>
+            <p style="font-weight: bold;">Service Advisor</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="print-btn-container">
+        <button class="print-btn" onclick="window.print()">Print Invoice</button>
+    </div>
+</body>
+</html>

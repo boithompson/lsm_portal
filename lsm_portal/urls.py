@@ -9,6 +9,7 @@ urlpatterns = [
     path("", include("accounts.urls")),
     path("", include("store.urls")),
     path("dashboard/", include("home.urls")),
+    path("dashboard/", include("workshop.urls")), # Include workshop app URLs
 ]
 
 # Custom error handlers
@@ -19,3 +20,4 @@ handler400 = home_views.custom_400
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) # Add this line for static files

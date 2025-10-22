@@ -18,7 +18,8 @@
             <hr>
             <h5>Parts</h5>
             <div class="row">
-                <div class="col-md-5"><label>Part Name</label></div>
+                <div class="col-md-4"><label>Part Name</label></div>
+                <div class="col-md-2"><label>Price</label></div>
                 <div class="col-md-2"><label>Quantity</label></div>
                 <div class="col-md-2"><label>Delete</label></div>
             </div>
@@ -26,11 +27,28 @@
                 {{ part_formset.management_form }}
                 {% for form in part_formset %}
                 <div class="row part-form">
-                    <div class="col-md-5">{{ form.name }}</div>
+                    <div class="col-md-4">{{ form.name }}</div>
+                    <div class="col-md-2">{{ form.price }}</div>
                     <div class="col-md-2">{{ form.quantity }}</div>
                     <div class="col-md-2">
-                        {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
+                        {% if form.instance.pk %}{{ form.DELETE }}{{ form.id }}{% endif %}
                     </div>
+                    {% if form.errors %}
+                        <div class="col-md-12 text-danger">
+                            {% for field in form %}
+                                {% if field.errors %}
+                                    {% for error in field.errors %}
+                                        {{ field.label }}: {{ error }}<br>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if form.non_field_errors %}
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}<br>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
@@ -58,11 +76,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const emptyForm = document.createElement('div');
         emptyForm.innerHTML = `
             <div class="row part-form">
-                <div class="col-md-5"><input type="text" name="estimatepart_set-${formNum}-name" class="form-control" /></div>
+                <div class="col-md-4"><input type="text" name="estimatepart_set-${formNum}-name" class="form-control" /></div>
+                <div class="col-md-2"><input type="number" name="estimatepart_set-${formNum}-price" class="form-control" value="0.00" step="0.01" /></div>
                 <div class="col-md-2"><input type="number" name="estimatepart_set-${formNum}-quantity" class="form-control" value="1" /></div>
                 <div class="col-md-2"><input type="checkbox" name="estimatepart_set-${formNum}-DELETE" id="id_estimatepart_set-${formNum}-DELETE" /></div>
-                <input type="hidden" name="estimatepart_set-${formNum}-id" id="id_estimatepart_set-${formNum}-id" />
-                <input type="hidden" name="estimatepart_set-${formNum}-estimate" id="id_estimatepart_set-${formNum}-estimate" />
+                <input type="hidden" name="estimatepart_set-${formNum}-id" id="id_estimatepart_set-${formNum}-id" value="" />
+                <input type="hidden" name="estimatepart_set-${formNum}-estimate" id="id_estimatepart_set-${formNum}-estimate" value="{{ internal_estimate.id }}" />
             </div>
         `;
         formsetContainer.appendChild(emptyForm);
