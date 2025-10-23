@@ -6,31 +6,34 @@ from decimal import Decimal # Import Decimal
 @receiver(post_save, sender=InternalEstimate)
 @receiver(post_delete, sender=EstimatePart)
 def update_internal_estimate_totals(sender, instance, **kwargs):
+    # Avoid recursion if this save is already triggered by the signal itself
+    if kwargs.get('raw'): # raw=True for initial data loading, don't run signals
+        return
+
     if isinstance(instance, EstimatePart):
         internal_estimate = instance.estimate
     else: # instance is InternalEstimate
         internal_estimate = instance
     
-    # Disconnect the signal to prevent recursion
-    post_save.disconnect(update_internal_estimate_totals, sender=InternalEstimate)
-    post_delete.disconnect(update_internal_estimate_totals, sender=EstimatePart)
+    # Ensure internal_estimate still exists before proceeding
+    # This check is crucial for post_delete of EstimatePart, where InternalEstimate might be gone
+    if not InternalEstimate.objects.filter(pk=internal_estimate.pk).exists():
+        return
 
-    try:
-        # Recalculate grand_total
-        current_grand_total = internal_estimate.grand_total
+    # Recalculate grand_total
+    current_grand_total = internal_estimate.grand_total
 
-        if internal_estimate.apply_vat:
-            internal_estimate.vat_amount = current_grand_total * Decimal('0.075') # 7.5% VAT
-            internal_estimate.total_with_vat = current_grand_total + internal_estimate.vat_amount
-        else:
-            internal_estimate.vat_amount = Decimal('0.00')
-            internal_estimate.total_with_vat = current_grand_total
+    if internal_estimate.apply_vat:
+        internal_estimate.vat_amount = current_grand_total * Decimal('0.075') # 7.5% VAT
+        internal_estimate.total_with_vat = current_grand_total + internal_estimate.vat_amount
+    else:
+        internal_estimate.vat_amount = Decimal('0.00')
+        internal_estimate.total_with_vat = current_grand_total
+    
+    # Only save if the calculated values are different from the current values
+    # This prevents unnecessary saves and potential recursion
+    if (internal_estimate.vat_amount != InternalEstimate.objects.get(pk=internal_estimate.pk).vat_amount or
+        internal_estimate.total_with_vat != InternalEstimate.objects.get(pk=internal_estimate.pk).total_with_vat):
         
-        # Save if the values have actually changed
-        # We don't need to compare with _original_vat_amount here because we've disconnected the signal
-        # and this save won't trigger it again.
+        # Use update_fields to prevent re-triggering post_save for the entire instance
         internal_estimate.save(update_fields=['vat_amount', 'total_with_vat'])
-    finally:
-        # Reconnect the signal
-        post_save.connect(update_internal_estimate_totals, sender=InternalEstimate)
-        post_delete.connect(update_internal_estimate_totals, sender=EstimatePart)

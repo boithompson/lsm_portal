@@ -60,49 +60,67 @@ from functools import wraps
 def workshop_access_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return redirect("accounts:login") # Redirect to login if not authenticated
-        if request.user.access_level not in ["admin", "workshop", "procurement"]:
-            messages.error(request, "You do not have permission to access this page.")
-            return redirect("home:dashboard")
-        return view_func(request, *args, **kwargs)
+        try:
+            if not request.user.is_authenticated:
+                return redirect("accounts:login") # Redirect to login if not authenticated
+            if request.user.access_level not in ["admin", "workshop", "procurement"]:
+                messages.error(request, "You do not have permission to access this page.")
+                return redirect("home:dashboard")
+            return view_func(request, *args, **kwargs)
+        except Exception as e:
+            logger.exception("Error in workshop_access_required decorator:")
+            messages.error(request, f"An unexpected error occurred in access check: {e}")
+            return redirect("home:dashboard") # Redirect to a safe page
     return _wrapped_view
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 @login_required
 @workshop_access_required
 def workshop(request):
-    query = request.GET.get("q")
-    status = request.GET.get("status")
-    selected_branch_id = request.GET.get("branch")  # for admin filtering
+    try:
+        query = request.GET.get("q")
+        status = request.GET.get("status")
+        selected_branch_id = request.GET.get("branch")  # for admin filtering
 
-    if request.user.access_level == "admin":
-        vehicles = Vehicle.objects.all()
-        branches = Branch.objects.all()
+        if request.user.access_level == "admin":
+            vehicles = Vehicle.objects.all()
+            branches = Branch.objects.all()
 
-        if selected_branch_id:
-            vehicles = vehicles.filter(branch__id=selected_branch_id)
-    else:
-        vehicles = Vehicle.objects.filter(branch=request.user.branch)
-        branches = None  # no need to show branches to non-admins
+            if selected_branch_id:
+                vehicles = vehicles.filter(branch__id=selected_branch_id)
+        else:
+            if request.user.branch:
+                vehicles = Vehicle.objects.filter(branch=request.user.branch)
+            else:
+                # If a non-admin user has no branch assigned, they shouldn't see any vehicles
+                vehicles = Vehicle.objects.none()
+            branches = []  # no need to show branches to non-admins, but provide an empty list
 
-    if query:
-        vehicles = vehicles.filter(
-            Q(customer_name__icontains=query)
-            | Q(vehicle_make__icontains=query)
-            | Q(model__icontains=query)
-            | Q(licence_plate__icontains=query)
-        )
+        if query:
+            vehicles = vehicles.filter(
+                Q(customer_name__icontains=query)
+                | Q(vehicle_make__icontains=query)
+                | Q(model__icontains=query)
+                | Q(licence_plate__icontains=query)
+            )
 
-    if status:
-        vehicles = vehicles.filter(status=status)
+        if status:
+            vehicles = vehicles.filter(status=status)
 
-    context = {
-        "vehicles": vehicles,
-        "vehicle_status_choices": Vehicle.STATUS_CHOICES,
-        "branches": branches,  # will be used for filter dropdown in template
-        "selected_branch_id": selected_branch_id,
-    }
-    return render(request, "home/workshop.html", context)
+        context = {
+            "vehicles": vehicles,
+            "vehicle_status_choices": Vehicle.STATUS_CHOICES,
+            "branches": branches,  # will be used for filter dropdown in template
+            "selected_branch_id": selected_branch_id,
+        }
+        return render(request, "home/workshop.html", context)
+    except Exception as e:
+        logger.exception("Error in workshop view:")
+        messages.error(request, f"An unexpected error occurred: {e}")
+        return redirect("home:dashboard") # Redirect to a safe page
 
 
 @login_required
@@ -186,8 +204,11 @@ def update_vehicle_status(request, vehicle_id):
 @workshop_access_required
 def delete_vehicle(request, vehicle_id):
     vehicle = Vehicle.objects.get(id=vehicle_id)
-    if request.user.access_level == "admin" or request.user.access_level == "manager":
+    if request.user.access_level in ["admin", "manager",]:
         vehicle.delete()
+        messages.success(request, "Vehicle record deleted successfully.")
+    else:
+        messages.error(request, "You do not have permission to delete vehicle records.")
     return redirect("home:workshop")
 
 
@@ -320,17 +341,13 @@ def edit_internal_estimate(request, vehicle_id):
 
 
 def custom_404(request, exception):
-    logout(request)
     return render(request, "404.html", {}, status=404)
 
 def custom_500(request):
-    logout(request)
     return render(request, "500.html", {}, status=500)
 
 def custom_403(request, exception):
-    logout(request)
     return render(request, "403.html", {}, status=403)
 
 def custom_400(request, exception):
-    logout(request)
     return render(request, "400.html", {}, status=400)

@@ -18,11 +18,11 @@
             color: #000;
             margin: 0;
             padding: 0;
-            font-size: 12px; /* Set base font size for body */
+            font-size: 14px; /* Set base font size for body */
         }
 
         p {
-            font-size: 12px;
+            font-size: 14px;
         }
 
         .invoice-wrapper {
@@ -47,7 +47,7 @@
         }
 
         .invoice-header h2 {
-            font-size: 20px;
+            font-size: 18px;
             text-transform: uppercase;
             text-align: right;
         }
@@ -220,7 +220,7 @@
                                 <tr><td>Year:</td><td>{{ vehicle.year }}</td></tr>
                                 <tr><td>Chassis No:</td><td>{{ vehicle.chasis_no }}</td></tr>
                                 <tr><td>License Plate:</td><td>{{ vehicle.licence_plate }}</td></tr>
-                                <tr><td>Mileage:</td><td>{{ vehicle.mileage }} KM</td></tr>
+                                <tr><td>Mileage:</td><td>{{ vehicle.mileage }}</td></tr>
                             </table>
                         </div>
                     </td>
@@ -278,21 +278,41 @@
                 {{ internal_estimate.grand_total|num_to_words }}
             {% endif %} Naira Only</span>
         </p>
+        <p><b>Payment can be made to the following accounts:</b>
+        <div style="display: flex; flex-direction: row; justify-content:left; margin: 10px 0;">
+            <div style="flex:auto;">
+                <p><b>Lanre Shittu Motors Nig. Ltd</b>
+                    <br/>
+                    <b>Account No:</b> 0060603874
+                    <br/>
+                    <b>Bank:</b> Access Bank
+                </p>
+            </div>
+            <div style="flex:auto">
+                <p><b>Lanre Shittu Motors ABJ Workshop</b>
+                    <br/>
+                    <b>Account No:</b> 5381506500
+                    <br/>
+                    <b>Bank:</b> Moneipoint Microfinance Bank
+                </p>
+            </div>
+        </div>
+        
         <p>
             <b>Note:</b>&nbsp;&nbsp;&nbsp;&nbsp;This estimate was based on visual inspection, if any other damages are found in the course of repairs; a supplementary estimate will be prepared for your approval.
             <br/>
-            a.&nbsp;&nbsp;&nbsp;&nbsp;<b>Validity period is ONE weeks only.</b>
+           <b>A.</b>&nbsp;&nbsp;&nbsp;&nbsp;<b>Validity period is ONE weeks only.</b>
             <br/>						
-            b.&nbsp;&nbsp;&nbsp;&nbsp;A deposit of 75% will be required before commencement of repairs or any maintenance as the case may be.						
+            <b>B.</b>&nbsp;&nbsp;&nbsp;&nbsp;A deposit of 75% will be required before commencement of repairs or any maintenance as the case may be.						
             <br/>
-            c.&nbsp;&nbsp;&nbsp;&nbsp;Parking fee of =N= 2000 naira per day if repairs are not approved within two weeks from the day the customer receives the estimate.						
+            <b>C.</b>&nbsp;&nbsp;&nbsp;&nbsp;Parking fee of =N= 2000 naira per day if repairs are not approved within two weeks from the day the customer receives the estimate.						
             <br/>
-            d.&nbsp;&nbsp;&nbsp;&nbsp;Customer will pay an estimate charge (that will be determined) in the case of vehicle withdrawal.						
+            <b>D.</b>&nbsp;&nbsp;&nbsp;&nbsp;Customer will pay an estimate charge (that will be determined) in the case of vehicle withdrawal.						
             <br/>
-            e.&nbsp;&nbsp;&nbsp;&nbsp;Prices of parts or materials are subject to change without prior notice to customers.						
+            <b>E.</b>&nbsp;&nbsp;&nbsp;&nbsp;Prices of parts or materials are subject to change without prior notice to customers.												
             <br/>
-            f.&nbsp;&nbsp;&nbsp;&nbsp;<b>Payment can be made in Lanre Shittu Motors Nig. Ltd account no. 0060603874 Access Bank</b>						
-		</p>					
+            <b>F.</b>&nbsp;&nbsp;&nbsp;&nbsp;Feel free to contact <b>LSM Abuja Service Advisor on 08070690006</b> to book an appointment for your visit.
+        </p>					
         <div style="margin-top: 100px; display: flex; justify-content: space-between;">
             <div style="width: 300px; text-align: center; border-top: 1px solid #000; padding-top: 5px;">
             <p style="font-size: 16px; font-weight: 700; margin-bottom: 5px;">Rafiu Adelani Ogunlowo</p>

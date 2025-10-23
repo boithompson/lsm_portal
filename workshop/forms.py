@@ -32,7 +32,7 @@ class VehicleForm(forms.ModelForm):
             "date_of_first_registration": forms.DateInput(
                 attrs={"class": "form-control", "type": "date"}
             ),
-            "mileage": forms.NumberInput(attrs={"class": "form-control"}),
+            "mileage": forms.TextInput(attrs={"class": "form-control"}),
             "complaint": forms.Textarea(attrs={"class": "form-control"}),
         }
 

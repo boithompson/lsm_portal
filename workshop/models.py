@@ -26,7 +26,7 @@ class Vehicle(models.Model):
     chasis_no = models.CharField(max_length=100)
     licence_plate = models.CharField(max_length=20)
     date_of_first_registration = models.DateField()
-    mileage = models.PositiveIntegerField()
+    mileage = models.CharField(max_length=50, blank=True, null=True)
     complaint = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
 
@@ -71,11 +71,6 @@ class InternalEstimate(models.Model):
     vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00')) # New field
     total_with_vat = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00')) # New field
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._original_vat_amount = self.vat_amount
-        self._original_total_with_vat = self.total_with_vat
-
     def __str__(self):
         return f"Internal Estimate for {self.vehicle}"
 
@@ -91,9 +86,6 @@ class InternalEstimate(models.Model):
     def save(self, *args, **kwargs):
         # Only call super().save() here. VAT calculation will be handled by signals.
         super().save(*args, **kwargs)
-        # Update original values after saving for signal comparison
-        self._original_vat_amount = self.vat_amount
-        self._original_total_with_vat = self.total_with_vat
 
 
 class EstimatePart(models.Model):
