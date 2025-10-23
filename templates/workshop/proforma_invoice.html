@@ -220,7 +220,7 @@
                                 <tr><td>Year:</td><td>{{ vehicle.year }}</td></tr>
                                 <tr><td>Chassis No:</td><td>{{ vehicle.chasis_no }}</td></tr>
                                 <tr><td>License Plate:</td><td>{{ vehicle.licence_plate }}</td></tr>
-                                <tr><td>Mileage:</td><td>{{ vehicle.mileage }}</td></tr>
+                                <tr><td>Mileage:</td><td>{{ vehicle.mileage }} KM</td></tr>
                             </table>
                         </div>
                     </td>
@@ -229,7 +229,7 @@
         </div>
 
         <!-- Parts Table -->
-        <h3 style="border-bottom:1px solid #000; margin-bottom:8px;">Estimate Parts</h3>
+        <h3 style="border-bottom:1px solid #000; margin-bottom:8px;">Quotation</h3>
         <table class="parts">
             <thead>
                 <tr>
@@ -271,7 +271,7 @@
             </tbody>
         </table>
         <p>
-            <b>Amount in words:- </b><span style="color: red; text-decoration: underline;">
+            <b>Amount in words:- </b><span style="color: red; text-decoration: underline; margin-left: 20px;">
             {% if vat_applied %}
                 {{ internal_estimate.total_with_vat|num_to_words }}
             {% else %}
