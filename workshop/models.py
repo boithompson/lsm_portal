@@ -67,7 +67,8 @@ class InternalEstimate(models.Model):
     vehicle = models.OneToOneField(
         Vehicle, on_delete=models.CASCADE, related_name="internal_estimate"
     )
-    apply_vat = models.BooleanField(default=False) # New field
+    apply_vat = models.BooleanField(default=False)
+    is_invoice = models.BooleanField(default=False) # New field
     vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00')) # New field
     total_with_vat = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00')) # New field
 

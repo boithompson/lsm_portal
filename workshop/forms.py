@@ -61,9 +61,10 @@ class JobSheetForm(forms.ModelForm):
 class InternalEstimateForm(forms.ModelForm):
     class Meta:
         model = InternalEstimate
-        fields = ['apply_vat'] # Add apply_vat field
+        fields = ['apply_vat', 'is_invoice']
         widgets = {
             'apply_vat': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_invoice': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
 

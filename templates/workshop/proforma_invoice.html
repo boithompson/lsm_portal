@@ -195,7 +195,7 @@
         </div>
         <!-- Customer (Company) & Vehicle Info in Table Layout -->
         <div style="text-align: center;">
-            <h1 style="background:#f5f5f5; padding:12px 16px; border-radius:6px; text-align:center; font-size:18px; margin:10px 0; display: inline-block;">PROFORMA INVOICE</h1>
+            <h1 style="background:#f5f5f5; padding:12px 16px; border-radius:6px; text-align:center; font-size:18px; margin:10px 0; display: inline-block;">{% if is_invoice %}INVOICE{% else %}PROFORMA INVOICE{% endif %}</h1>
         </div>
         <div class="info-section">
             <table class="info-table">
@@ -311,7 +311,7 @@
             <br/>
             <b>E.</b>&nbsp;&nbsp;&nbsp;&nbsp;Prices of parts or materials are subject to change without prior notice to customers.												
             <br/>
-            <b>F.</b>&nbsp;&nbsp;&nbsp;&nbsp;Feel free to contact <b>LSM Abuja Service Advisor on 08070690006</b> to book an appointment for your visit.
+            <b>F.</b>&nbsp;&nbsp;&nbsp;&nbsp;Feel free to contact <b>LSM Abuja Service Advisor on 08070690006</b> to book an appointment for your next visit.
         </p>					
         <div style="margin-top: 100px; display: flex; justify-content: space-between;">
             <div style="width: 300px; text-align: center; border-top: 1px solid #000; padding-top: 5px;">

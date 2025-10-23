@@ -33,6 +33,7 @@ def print_proforma_invoice(request, vehicle_id):
         "internal_estimate": internal_estimate,
         "estimate_parts": estimate_parts,
         "date_now": datetime.date.today(), # Add current date to context
-        "vat_applied": internal_estimate.apply_vat, # Pass VAT status to template
+        "vat_applied": internal_estimate.apply_vat,
+        "is_invoice": internal_estimate.is_invoice, # Pass invoice status to template
     }
     return render(request, "workshop/proforma_invoice.html", context)
