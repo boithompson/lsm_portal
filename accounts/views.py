@@ -8,7 +8,10 @@ from django.contrib import messages
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect("home:dashboard")
+        if request.user.access_level in ['workshop', 'procurement']:
+            return redirect("home:workshop")
+        else:
+            return redirect("home:dashboard")
     form = LoginForm(request.POST or None)
     if request.method == "POST":
         if form.is_valid():
@@ -17,7 +20,10 @@ def login_view(request):
             user = authenticate(request, email=email, password=password)
             if user is not None:
                 login(request, user)
-                return redirect("home:dashboard")
+                if user.access_level in ['workshop', 'procurement']:
+                    return redirect("home:workshop")
+                else:
+                    return redirect("home:dashboard")
             else:
                 form.add_error(None, "Invalid credentials")
     return render(request, "accounts/login.html", {"form": form})
