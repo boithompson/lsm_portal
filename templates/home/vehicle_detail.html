@@ -88,7 +88,7 @@
                     </table>
                     {% if request.user.access_level == 'procurement' or request.user.access_level == 'workshop' or request.user.access_level == 'admin' %}
                         <a href="{% url 'home:edit_internal_estimate' vehicle.id %}" class="btn btn-primary btn-sm">Edit Internal Estimate</a>
-                        <a href="{% url 'workshop:print_proforma_invoice' vehicle.id %}" class="btn btn-info btn-sm ms-2" target="_blank">Print Invoice</a>
+                        <a href="{% url 'workshop:print_proforma_invoice' vehicle.id %}" class="btn btn-info btn-sm ms-2" target="_blank">{% if is_invoice %}Print invoice{% else %}Print proforma invoice{% endif %}</a>
                     {% endif %}
                 {% else %}
                     <p>No internal estimate found for this vehicle.</p>

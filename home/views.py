@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.forms import inlineformset_factory
 from accounts.models import CustomUser, Branch
-from workshop.models import Vehicle, JobSheet, InternalEstimate, EstimatePart
+from workshop.models import Vehicle, JobSheet, InternalEstimate, EstimatePart, VehicleStatus
 from store.models import Stock  # Import Stock model
 from django.contrib import messages
 from django.contrib.auth import logout
@@ -112,7 +112,7 @@ def workshop(request):
 
         context = {
             "vehicles": vehicles,
-            "vehicle_status_choices": Vehicle.STATUS_CHOICES,
+            "vehicle_status_choices": VehicleStatus.choices,
             "branches": branches,  # will be used for filter dropdown in template
             "selected_branch_id": selected_branch_id,
         }
@@ -127,8 +127,10 @@ def workshop(request):
 @workshop_access_required
 def vehicle_detail(request, vehicle_id):
     vehicle = Vehicle.objects.get(id=vehicle_id)
+    internal_estimate = InternalEstimate.objects.filter(vehicle=vehicle).first()
     context = {
         "vehicle": vehicle,
+        "is_invoice": internal_estimate.is_invoice if internal_estimate else False,
     }
     return render(request, "home/vehicle_detail.html", context)
 
@@ -194,7 +196,7 @@ def update_vehicle_status(request, vehicle_id):
     vehicle = Vehicle.objects.get(id=vehicle_id)
     if request.method == "POST":
         status = request.POST.get("status")
-        if status in [choice[0] for choice in Vehicle.STATUS_CHOICES]:
+        if status in [choice[0] for choice in VehicleStatus.choices]:
             vehicle.status = status
             vehicle.save()
     return redirect("home:workshop")

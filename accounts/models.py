@@ -31,19 +31,20 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser):
-    ACCESS_LEVEL_CHOICES = [
-        ("admin", "Admin"),
-        ("manager", "Manager"),
-        ("account", "Account"),
-        ("procurement", "Procurement"),
-        ("workshop", "Workshop"),
-        ("sales", "Sales"),
-    ]
+    class AccessLevel(models.TextChoices):
+        ADMIN = "admin", "Admin"
+        MANAGER = "manager", "Manager"
+        ACCOUNT = "account", "Account"
+        PROCUREMENT = "procurement", "Procurement"
+        WORKSHOP = "workshop", "Workshop"
+        SALES = "sales", "Sales"
 
     unique_id = models.CharField(
         max_length=9, unique=True, default=generate_unique_id, editable=False
     )
-    access_level = models.CharField(max_length=20, choices=ACCESS_LEVEL_CHOICES)
+    access_level = models.CharField(
+        max_length=20, choices=AccessLevel.choices, default=AccessLevel.WORKSHOP
+    )
     full_name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=20)

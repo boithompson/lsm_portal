@@ -4,14 +4,14 @@ import uuid
 from decimal import Decimal # Import Decimal for precise calculations
 
 
-class Vehicle(models.Model):
-    STATUS_CHOICES = (
-        ("pending", "Pending"),
-        ("in_progress", "In Progress"),
-        ("completed", "Completed"),
-        ("cancelled", "Cancelled"),
-    )
+class VehicleStatus(models.TextChoices):
+    PENDING = "pending", "Pending"
+    IN_PROGRESS = "in_progress", "In Progress"
+    COMPLETED = "completed", "Completed"
+    CANCELLED = "cancelled", "Cancelled"
 
+
+class Vehicle(models.Model):
     uuid = models.CharField(max_length=12, unique=True, editable=False)
     image = models.ImageField(upload_to="vehicle_images/", blank=True, null=True)
     branch = models.ForeignKey(
@@ -28,7 +28,9 @@ class Vehicle(models.Model):
     date_of_first_registration = models.DateField()
     mileage = models.CharField(max_length=50, blank=True, null=True)
     complaint = models.TextField()
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    status = models.CharField(
+        max_length=20, choices=VehicleStatus.choices, default=VehicleStatus.PENDING
+    )
 
     def __str__(self):
         return f"{self.vehicle_make} {self.model} ({self.licence_plate})"
@@ -84,9 +86,9 @@ class InternalEstimate(models.Model):
                 total += estimate_part.price * estimate_part.quantity
         return total
 
-    def save(self, *args, **kwargs):
-        # Only call super().save() here. VAT calculation will be handled by signals.
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     # Only call super().save() here. VAT calculation will be handled by signals.
+    #     super().save(*args, **kwargs)
 
 
 class EstimatePart(models.Model):

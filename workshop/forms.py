@@ -1,5 +1,6 @@
 from django import forms
 from .models import Vehicle, JobSheet, InternalEstimate, EstimatePart
+from accounts.models import CustomUser
 
 
 class VehicleForm(forms.ModelForm):
@@ -50,18 +51,31 @@ class JobSheetForm(forms.ModelForm):
             "accessories": forms.Textarea(attrs={"class": "form-control"}),
             "job_description": forms.Textarea(attrs={"class": "form-control"}),
         }
+        # Define formfield_callback to filter queryset for service_advisor
+        # This is a more robust way to filter choices statically
+        def formfield_for_choice_field(db_field, **kwargs):
+            # Extract the widget from kwargs if it exists, as Django's fields_for_model passes it.
+            widget = kwargs.pop('widget', None)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["service_advisor"].queryset = self.fields[
-            "service_advisor"
-        ].queryset.filter(access_level="workshop")
+            if db_field.name == 'service_advisor':
+                # For 'service_advisor', we explicitly set our custom widget.
+                return forms.ModelChoiceField(
+                    queryset=CustomUser.objects.filter(access_level=CustomUser.AccessLevel.WORKSHOP),
+                    widget=forms.Select(attrs={"class": "form-control"}),
+                    **kwargs # Pass remaining kwargs (without the original 'widget')
+                )
+            # For other fields, pass the extracted widget (if it existed) and other kwargs.
+            return db_field.formfield(widget=widget, **kwargs)
+        formfield_callback = formfield_for_choice_field
+    
+
 
 
 class InternalEstimateForm(forms.ModelForm):
     class Meta:
         model = InternalEstimate
         fields = ['apply_vat', 'is_invoice']
+        # Removed custom widgets to simplify and avoid potential recursion issues
         widgets = {
             'apply_vat': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_invoice': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -74,6 +88,7 @@ class EstimatePartForm(forms.ModelForm):
     class Meta:
         model = EstimatePart
         fields = ["id", "name", "price", "quantity"]
+        # Removed custom widgets to simplify and avoid potential recursion issues
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
             "price": forms.NumberInput(attrs={"class": "form-control"}),
