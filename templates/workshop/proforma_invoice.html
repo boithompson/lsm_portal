@@ -234,7 +234,7 @@
             <thead>
                 <tr>
                     <th>S/N</th>
-                    <th>Part Name</th>
+                    <th>Item Description</th>
                     <th>Quantity</th>
                     <th>Unit Price</th>
                     <th>Total</th>
@@ -244,39 +244,39 @@
                 {% for part in estimate_parts %}
                 <tr>
                     <td>{{ forloop.counter }}</td>
-                    <td>{{ part.name }}</td>
+                    <td><b>{{ part.name }}</b></td>
                     <td>{{ part.quantity }}</td>
                     <td>{{ part.price|naira }}</td>
-                    <td>{{ part.price|multiply:part.quantity|naira }}</td>
+                    <td><b>{{ part.price|multiply:part.quantity|naira }}</b></td>
                 </tr>
                 {% endfor %}
                 <tr class="total-row">
                     {% if vat_applied %}
-                        <td colspan="4" style="text-align:right;">Sub Total</td>
+                        <td colspan="4" style="text-align:right;"><b>Total</b></td>
                     {% else %}
-                        <td colspan="4" style="text-align:right;">Grand Total</td>
+                        <td colspan="4" style="text-align:right;"><b>Grand Total</b></td>
                     {% endif %}
-                    <td>{{ internal_estimate.grand_total|naira }}</td>
+                    <td><b>{{ internal_estimate.grand_total|naira }}</b></td>
                 </tr>
                 {% if vat_applied %}
                 <tr>
-                    <td colspan="4" style="text-align:right;">VAT (7.5%)</td>
-                    <td>{{ internal_estimate.vat_amount|naira }}</td>
+                    <td colspan="4" style="text-align:right;"><b>VAT (7.5%)</b></td>
+                    <td><b>{{ internal_estimate.vat_amount|naira }}</b></td>
                 </tr>
                 <tr class="total-row">
-                    <td colspan="4" style="text-align:right;">Total (with VAT)</td>
-                    <td>{{ internal_estimate.total_with_vat|naira }}</td>
+                    <td colspan="4" style="text-align:right;"><b>Total (with VAT)</b></td>
+                    <td><b>{{ internal_estimate.total_with_vat|naira }}</b></td>
                 </tr>
                 {% endif %}
             </tbody>
         </table>
         <p>
-            <b>Amount in words:- </b><span style="color: red; text-decoration: underline; margin-left: 20px;">
+            <b>Amount in words:- <span style="color: red; text-decoration: underline; margin-left: 20px;">
             {% if vat_applied %}
                 {{ internal_estimate.total_with_vat|num_to_words }}
             {% else %}
                 {{ internal_estimate.grand_total|num_to_words }}
-            {% endif %} Naira Only</span>
+            {% endif %} Naira Only</span></b>
         </p>
         <p>
             <b>Note:</b>&nbsp;&nbsp;&nbsp;&nbsp;This estimate was based on visual inspection, if any other damages are found in the course of repairs; a supplementary estimate will be prepared for your approval.
