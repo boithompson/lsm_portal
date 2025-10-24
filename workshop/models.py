@@ -20,6 +20,7 @@ class Vehicle(models.Model):
     customer_name = models.CharField(max_length=255)
     address = models.CharField(max_length=225)
     phone = models.CharField(max_length=20)
+    job_no = models.CharField(max_length=100, blank=True, null=True)
     vehicle_make = models.CharField(max_length=100)
     model = models.CharField(max_length=100)
     year = models.PositiveIntegerField()
@@ -86,9 +87,6 @@ class InternalEstimate(models.Model):
                 total += estimate_part.price * estimate_part.quantity
         return total
 
-    # def save(self, *args, **kwargs):
-    #     # Only call super().save() here. VAT calculation will be handled by signals.
-    #     super().save(*args, **kwargs)
 
 
 class EstimatePart(models.Model):
