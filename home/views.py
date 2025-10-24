@@ -86,14 +86,14 @@ def workshop(request):
         selected_branch_id = request.GET.get("branch")  # for admin filtering
 
         if request.user.access_level == "admin":
-            vehicles = Vehicle.objects.all()
+            vehicles = Vehicle.objects.all().order_by("-id")  # Order by newest first
             branches = Branch.objects.all()
 
             if selected_branch_id:
                 vehicles = vehicles.filter(branch__id=selected_branch_id)
         else:
             if request.user.branch:
-                vehicles = Vehicle.objects.filter(branch=request.user.branch)
+                vehicles = Vehicle.objects.filter(branch=request.user.branch).order_by("-id")  # Order by newest first
             else:
                 # If a non-admin user has no branch assigned, they shouldn't see any vehicles
                 vehicles = Vehicle.objects.none()
@@ -110,8 +110,14 @@ def workshop(request):
         if status:
             vehicles = vehicles.filter(status=status)
 
+        from django.core.paginator import Paginator
+
+        paginator = Paginator(vehicles, 50)  # Show 50 vehicles per page
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+
         context = {
-            "vehicles": vehicles,
+            "page_obj": page_obj,
             "vehicle_status_choices": VehicleStatus.choices,
             "branches": branches,  # will be used for filter dropdown in template
             "selected_branch_id": selected_branch_id,

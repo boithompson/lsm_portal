@@ -83,8 +83,14 @@ def stock_list(request):
     # Show all branches to everyone for filtering purposes
     branches = Branch.objects.all()
 
+    from django.core.paginator import Paginator
+
+    paginator = Paginator(stock_items, 50)  # Show 50 stock items per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     context = {
-        "stock_items": stock_items,
+        "page_obj": page_obj,
         "branches": branches,
         "selected_branch": branch_filter,
     }
