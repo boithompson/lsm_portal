@@ -1,7 +1,9 @@
 import uuid
+import gc
 from decimal import Decimal, InvalidOperation
 from datetime import datetime
 from django.core.management.base import BaseCommand
+from django.db import connection
 from openpyxl import load_workbook
 from workshop.models import Vehicle, InternalEstimate, EstimatePart, Branch
 
@@ -14,7 +16,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         file_path = options["excel_file"]
-        wb = load_workbook(file_path, data_only=True)
 
         # ✅ Ensure 'Abuja' branch exists or create it
         branch, _ = Branch.objects.get_or_create(name="Abuja")
@@ -24,13 +25,17 @@ class Command(BaseCommand):
         total_parts = 0
         skipped_sheets = []
 
-        self.stdout.write(self.style.WARNING(f"Starting import from {file_path}...\n"))
+        self.stdout.write(self.style.WARNING(f"🚀 Starting import from: {file_path}\n"))
+
+        # ✅ Load workbook metadata only once
+        wb = load_workbook(file_path, data_only=True)
 
         for sheet_name in wb.sheetnames:
-            ws = wb[sheet_name]
-            self.stdout.write(self.style.NOTICE(f"📄 Processing sheet: {sheet_name}"))
-
             try:
+                self.stdout.write(self.style.NOTICE(f"📄 Processing sheet: {sheet_name}"))
+
+                ws = wb[sheet_name]
+
                 # ✅ Extract main vehicle data
                 customer_name = ws["C17"].value or ""
                 address = ws["C18"].value or ""
@@ -44,7 +49,7 @@ class Command(BaseCommand):
                 mileage = ws["H22"].value or ""
                 date_str = ws["C22"].value or ""
 
-                # ✅ Skip sheets missing key info
+                # ✅ Skip if essential info is missing
                 if not all([customer_name, vehicle_make, model, licence_plate]):
                     skipped_sheets.append(sheet_name)
                     self.stdout.write(
@@ -52,7 +57,7 @@ class Command(BaseCommand):
                     )
                     continue
 
-                # ✅ Parse date safely
+                # ✅ Parse registration date safely
                 try:
                     date_of_first_registration = (
                         datetime.strptime(str(date_str), "%d/%m/%Y").date()
@@ -81,7 +86,7 @@ class Command(BaseCommand):
                 )
                 total_vehicles += 1
 
-                # ✅ Create Internal Estimate linked to Vehicle
+                # ✅ Create Internal Estimate
                 estimate = InternalEstimate.objects.create(
                     vehicle=vehicle,
                     apply_vat=False,
@@ -91,7 +96,7 @@ class Command(BaseCommand):
                 )
                 total_estimates += 1
 
-                # ✅ Extract & attach job parts
+                # ✅ Process job parts
                 start_row = 25
                 parts_count = 0
                 parts_total = Decimal("0.00")
@@ -124,13 +129,12 @@ class Command(BaseCommand):
                     except (InvalidOperation, TypeError, ValueError):
                         total_amount = Decimal("0.00")
 
-                    # ✅ Calculate unit price (total ÷ quantity)
+                    # ✅ Calculate unit price
                     try:
                         price = (total_amount / quantity).quantize(Decimal("0.01")) if quantity > 0 else Decimal("0.00")
                     except (ArithmeticError, TypeError, InvalidOperation):
                         price = Decimal("0.00")
 
-                    # ✅ Create EstimatePart linked to InternalEstimate
                     EstimatePart.objects.create(
                         estimate=estimate,
                         name=str(desc).strip(),
@@ -143,10 +147,9 @@ class Command(BaseCommand):
                     parts_count += 1
                     start_row += 1
 
-                # ✅ VAT detection (check next rows)
+                # ✅ VAT handling
                 vat_row = start_row + 1
                 vat_value = ws[f"H{vat_row}"].value
-
                 try:
                     if vat_value and "7.5" in str(vat_value):
                         estimate.apply_vat = True
@@ -162,16 +165,22 @@ class Command(BaseCommand):
 
                 self.stdout.write(
                     self.style.SUCCESS(
-                        f"✅ Imported {vehicle.customer_name} ({vehicle.vehicle_make} - {vehicle.licence_plate}) "
-                        f"— {parts_count} parts linked"
+                        f"✅ Imported {vehicle.customer_name} ({vehicle.vehicle_make} - {vehicle.licence_plate}) — {parts_count} parts linked"
                     )
                 )
+
+                # ✅ Free up memory after processing each sheet
+                del ws
+                connection.close()
+                gc.collect()
 
             except Exception as e:
                 self.stdout.write(self.style.ERROR(f"❌ Error in sheet '{sheet_name}': {e}"))
                 continue
 
-        # ✅ Final summary
+        wb.close()
+
+        # ✅ Summary
         self.stdout.write(self.style.SUCCESS(
             f"\n🎯 Import complete!\n"
             f"Vehicles imported: {total_vehicles}\n"
