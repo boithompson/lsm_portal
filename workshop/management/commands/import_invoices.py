@@ -1,5 +1,5 @@
 import uuid
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from datetime import datetime
 from django.core.management.base import BaseCommand
 from openpyxl import load_workbook
@@ -36,6 +36,7 @@ class Command(BaseCommand):
                 address = ws["C18"].value or ""
                 phone = ws["C20"].value or ""
                 vehicle_make = ws["H17"].value or ""
+                job_no = ws["C21"].value or ""
                 model = ws["H18"].value or ""
                 year = ws["H19"].value or 0
                 chasis_no = ws["H20"].value or ""
@@ -67,6 +68,7 @@ class Command(BaseCommand):
                     customer_name=customer_name,
                     address=address,
                     phone=phone,
+                    job_no=job_no,
                     vehicle_make=vehicle_make,
                     model=model,
                     year=int(year) if year else 0,
@@ -92,6 +94,7 @@ class Command(BaseCommand):
                 # ✅ Extract & attach job parts
                 start_row = 25
                 parts_count = 0
+                parts_total = Decimal("0.00")
 
                 while True:
                     desc = ws[f"B{start_row}"].value
@@ -102,7 +105,7 @@ class Command(BaseCommand):
                         break
 
                     qty = ws[f"E{start_row}"].value
-                    total_amount = ws[f"H{start_row}"].value
+                    total_amount = ws[f"G{start_row}"].value
 
                     # ✅ Safe quantity parsing
                     try:
@@ -112,14 +115,19 @@ class Command(BaseCommand):
 
                     # ✅ Parse total amount safely
                     try:
-                        total_amount = Decimal(str(total_amount).replace(",", "")) if total_amount else Decimal("0.00")
-                    except Exception:
+                        if isinstance(total_amount, (int, float)):
+                            total_amount = Decimal(str(round(total_amount, 2)))
+                        elif isinstance(total_amount, str):
+                            total_amount = Decimal(total_amount.replace(",", "").strip() or "0")
+                        else:
+                            total_amount = Decimal("0.00")
+                    except (InvalidOperation, TypeError, ValueError):
                         total_amount = Decimal("0.00")
 
                     # ✅ Calculate unit price (total ÷ quantity)
                     try:
-                        price = (total_amount / quantity) if quantity > 0 else total_amount
-                    except (ArithmeticError, TypeError):
+                        price = (total_amount / quantity).quantize(Decimal("0.01")) if quantity > 0 else Decimal("0.00")
+                    except (ArithmeticError, TypeError, InvalidOperation):
                         price = Decimal("0.00")
 
                     # ✅ Create EstimatePart linked to InternalEstimate
@@ -130,23 +138,27 @@ class Command(BaseCommand):
                         price=price,
                     )
 
+                    parts_total += total_amount
                     total_parts += 1
                     parts_count += 1
                     start_row += 1
 
                 # ✅ VAT detection (check next rows)
-                estimate.refresh_from_db()
                 vat_row = start_row + 1
                 vat_value = ws[f"H{vat_row}"].value
 
                 try:
                     if vat_value and "7.5" in str(vat_value):
                         estimate.apply_vat = True
-                        estimate.vat_amount = estimate.grand_total * Decimal("0.075")
-                        estimate.total_with_vat = estimate.grand_total + estimate.vat_amount
-                        estimate.save()
-                except Exception:
-                    pass
+                        estimate.vat_amount = (parts_total * Decimal("0.075")).quantize(Decimal("0.01"))
+                        estimate.total_with_vat = (parts_total + estimate.vat_amount).quantize(Decimal("0.01"))
+                    else:
+                        estimate.apply_vat = False
+                        estimate.vat_amount = Decimal("0.00")
+                        estimate.total_with_vat = parts_total.quantize(Decimal("0.01"))
+                    estimate.save()
+                except Exception as e:
+                    self.stdout.write(self.style.ERROR(f"VAT calculation error in '{sheet_name}': {e}"))
 
                 self.stdout.write(
                     self.style.SUCCESS(
