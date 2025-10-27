@@ -17,8 +17,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         file_path = options["excel_file"]
 
-        # ✅ Ensure 'Abuja' branch exists or create it
-        branch, _ = Branch.objects.get_or_create(name="Abuja")
+        # ✅ Ensure 'ABUJA' branch exists or create it
+        branch, _ = Branch.objects.get_or_create(name="ABUJA")
 
         total_vehicles = 0
         total_estimates = 0
