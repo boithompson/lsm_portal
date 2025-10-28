@@ -5,6 +5,7 @@ from decimal import Decimal # Import Decimal for precise calculations
 
 
 class VehicleStatus(models.TextChoices):
+    ESTIMATE = "estimate", "Estimate"
     PENDING = "pending", "Pending"
     IN_PROGRESS = "in_progress", "In Progress"
     COMPLETED = "completed", "Completed"
@@ -30,7 +31,7 @@ class Vehicle(models.Model):
     mileage = models.CharField(max_length=50, blank=True, null=True)
     complaint = models.TextField()
     status = models.CharField(
-        max_length=20, choices=VehicleStatus.choices, default=VehicleStatus.PENDING
+        max_length=20, choices=VehicleStatus.choices, default=VehicleStatus.ESTIMATE
     )
 
     def __str__(self):
