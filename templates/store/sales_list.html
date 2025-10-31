@@ -1,0 +1,134 @@
+{% extends 'home/base.html' %}
+{% load custom_tags %}
+
+{% block title %}Sales Records{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        Sales Records {% if branch %}- {{ branch.name }}{% endif %}
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'store:create_sales_record' %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> Create New Sale
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% include 'partials/_messages.html' %}
+
+                    <div class="mb-3">
+                        <ul class="nav nav-tabs">
+                            <li class="nav-item">
+                                <a class="nav-link {% if not selected_category %}active{% endif %}"
+                                   href="{% if branch %}{% url 'store:sales_list_by_branch_filter' branch_pk=branch.pk %}{% else %}{% url 'store:sales_list_by_branch' %}{% endif %}">All Sales</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if selected_category == 'cash' %}active{% endif %}"
+                                   href="{% if branch %}{% url_replace path=request.path branch_pk=branch.pk category='cash' %}{% else %}{% url_replace path=request.path category='cash' %}{% endif %}">Cash Sales</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if selected_category == 'credit' %}active{% endif %}"
+                                   href="{% if branch %}{% url_replace path=request.path branch_pk=branch.pk category='credit' %}{% else %}{% url_replace path=request.path category='credit' %}{% endif %}">Credit Sales</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    {% if is_admin_or_manager %}
+                    <div class="mb-3">
+                        <form method="GET" action="{% url 'store:sales_list_by_branch' %}">
+                            <div class="input-group">
+                                <select name="branch_pk" class="form-select">
+                                    <option value="">All Branches</option>
+                                    {% for b in branches %}
+                                        <option value="{{ b.pk }}" {% if branch and b.pk == branch.pk %}selected{% endif %}>{{ b.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button class="btn btn-outline-secondary" type="submit">Filter by Branch</button>
+                            </div>
+                        </form>
+                    </div>
+                    {% endif %}
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Customer Name</th>
+                                    <th>Total Amount</th>
+                                    <th>Amount Paid (Cash)</th>
+                                    <th>Credit Owed</th>
+                                    <th>Sale Date</th>
+                                    <th>Branch</th>
+                                    <th>Type</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in page_obj %}
+                                <tr>
+                                    <td>{{ record.customer_name }}</td>
+                                    <td>₦{{ record.total_amount|floatformat:2 }}</td>
+                                    <td>₦{{ record.amount_paid_cash|floatformat:2 }}</td>
+                                    <td>₦{{ record.credit_owed|floatformat:2 }}</td>
+                                    <td>{{ record.sale_date|date:"Y-m-d H:i" }}</td>
+                                    <td>{{ record.branch.name }}</td>
+                                    <td>
+                                        {% if record.is_credit_sale %}
+                                            <span>Credit Sale</span>
+                                        {% else %}
+                                            <span>Cash Sale</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'store:sales_record_detail' pk=record.pk %}" class="btn btn-info btn-sm">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8">No sales records found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if page_obj.has_other_pages %}
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{% url_replace page=page_obj.previous_page_number %}">Previous</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                                {% endif %}
+                                {% for i in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == i %}
+                                        <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                                    {% else %}
+                                        <li class="page-item"><a class="page-link" href="{% url_replace page=i %}">{{ i }}</a></li>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{% url_replace page=page_obj.next_page_number %}">Next</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled"><span class="page-link">Next</span></li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

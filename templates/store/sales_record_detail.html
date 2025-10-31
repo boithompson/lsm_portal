@@ -1,0 +1,103 @@
+{% extends 'home/base.html' %}
+{% load custom_tags %}
+
+{% block title %}Sales Record Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Sales Record Details - {{ sales_record.customer_name }}</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'store:sales_list_by_branch' %}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left"></i> Back to Sales List
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% include 'partials/_messages.html' %}
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Customer Name:</strong> {{ sales_record.customer_name }}</p>
+                            <p><strong>Customer Contact:</strong> {{ sales_record.customer_contact|default:"N/A" }}</p>
+                            <p><strong>Marketer:</strong> {{ sales_record.marketer|default:"N/A" }}</p>
+                            <p><strong>Sale Date:</strong> {{ sales_record.sale_date|date:"Y-m-d H:i" }}</p>
+                            <p><strong>Branch:</strong> {{ sales_record.branch.name }}</p>
+                            <p><strong>Bank Paid:</strong> {{ sales_record.bank_paid|default:"N/A" }}</p>
+                            <p><strong>Total Amount:</strong> ₦{{ sales_record.total_amount|floatformat:2 }}</p>
+                            <p><strong>Sale Type:</strong>
+                                {% if sales_record.is_credit_sale %}
+                                    <span class="badge badge-warning">Credit Sale</span>
+                                {% else %}
+                                    <span class="badge badge-success">Cash Sale</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Payment Information</h4>
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="{{ form.amount_paid_cash.id_for_label }}" class="form-label">Amount Paid (Cash)</label>
+                                    {{ form.amount_paid_cash }}
+                                    {% if form.amount_paid_cash.errors %}
+                                        <div class="text-danger">{{ form.amount_paid_cash.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="mb-3">
+                                    <label for="{{ form.credit_owed.id_for_label }}" class="form-label">Credit Owed</label>
+                                    {{ form.credit_owed }}
+                                    {% if form.credit_owed.errors %}
+                                        <div class="text-danger">{{ form.credit_owed.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                {% if can_edit %}
+                                    <button type="submit" class="btn btn-success">Update Payment</button>
+                                    {% if sales_record.is_credit_sale %}
+                                        <button type="submit" name="mark_as_paid" value="true" class="btn btn-primary ml-2">Mark as Paid</button>
+                                    {% endif %}
+                                {% else %}
+                                    <p class="text-muted">You do not have permission to edit payment information.</p>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h4>Products Sold</h4>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Stock Item</th>
+                                    <th>Quantity Sold</th>
+                                    <th>Price at Sale</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in sales_record.items.all %}
+                                <tr>
+                                    <td>{{ item.stock_item.name }}</td>
+                                    <td>{{ item.quantity_sold }}</td>
+                                    <td>₦{{ item.price_at_sale|floatformat:2 }}</td>
+                                    <td>₦{{ item.subtotal|floatformat:2 }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4">No products sold for this record.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

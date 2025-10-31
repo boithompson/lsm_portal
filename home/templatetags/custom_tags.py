@@ -101,3 +101,20 @@ def num_to_words(value):
             result.append(",")
 
     return " ".join(result).strip()
+
+
+@register.simple_tag(takes_context=True)
+def url_replace(context, path=None, **kwargs):
+    """
+    Returns the current URL (or a specified path) with updated GET parameters.
+    Usage: {% url_replace path=request.path page=page_obj.next_page_number category='cash' %}
+    """
+    query = context['request'].GET.copy()
+    for key, value in kwargs.items():
+        query[key] = value
+    
+    # Construct the base path
+    base_path = path if path is not None else context['request'].path
+    
+    # Reconstruct the URL with the new query string
+    return f"{base_path}?{query.urlencode()}" if query else base_path

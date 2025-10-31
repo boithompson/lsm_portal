@@ -1,6 +1,7 @@
 import uuid
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
+from django.urls import reverse
 
 
 def generate_unique_id():
@@ -78,3 +79,6 @@ class Branch(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url_for_sales_list(self):
+        return reverse('store:sales_list_by_branch_filter', kwargs={'branch_pk': self.pk})

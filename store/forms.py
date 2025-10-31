@@ -134,6 +134,34 @@ class SalesRecordForm(forms.ModelForm):
         }
 
 
+class SaleRecordUpdateForm(forms.ModelForm):
+    class Meta:
+        model = SalesRecord
+        fields = ["amount_paid_cash", "credit_owed"]
+        widgets = {
+            "amount_paid_cash": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.01"}
+            ),
+            "credit_owed": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.01", "readonly": "readonly"} # credit_owed will be recalculated
+            ),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        amount_paid_cash = cleaned_data.get("amount_paid_cash")
+        
+        # Access the instance to get total_amount
+        if self.instance and amount_paid_cash is not None:
+            if amount_paid_cash > self.instance.total_amount:
+                self.add_error("amount_paid_cash", "Amount paid cannot exceed total amount.")
+            
+            # Recalculate credit_owed based on new amount_paid_cash
+            cleaned_data["credit_owed"] = self.instance.total_amount - amount_paid_cash
+        
+        return cleaned_data
+
+
 class SalesItemForm(forms.ModelForm):
     class Meta:
         model = SalesItem
