@@ -10,6 +10,7 @@ urlpatterns = [
     path("", include("store.urls")),
     path("dashboard/", include("home.urls")),
     path("dashboard/", include("workshop.urls")), # Include workshop app URLs
+    path("activity/", include(("user_activity.urls", "user_activity"), namespace="user_activity")), # Include user_activity app URLs under /admin/ with explicit namespace
 ]
 
 # Custom error handlers

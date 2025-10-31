@@ -169,6 +169,13 @@
                             <i class="fas fa-users-cog fa-icon"></i> Staffs
                         </a>
                     </li>
+                    {% if request.user.access_level == 'admin' %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'activity/logs' in request.path %}active{% endif %}" href="{% url 'user_activity:log_view' %}">
+                            <i class="fas fa-clipboard-list fa-icon"></i> Activity Logs
+                        </a>
+                    </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'accounts:logout' %}" id="sidebar-logout-link">
                             <i class="fas fa-sign-out-alt fa-icon"></i> Logout
