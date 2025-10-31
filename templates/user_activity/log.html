@@ -1,0 +1,121 @@
+{% extends 'home/base.html' %}
+{% load custom_tags %}
+
+{% block title %}User Activity Log{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">User Activity Log</h1>
+
+    {% include 'partials/_messages.html' %}
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Filter Logs</h6>
+        </div>
+        <div class="card-body">
+            <form method="GET" action="{% url 'user_activity:log_view' %}">
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label for="user_filter" class="form-label">User Email:</label>
+                        <input type="text" class="form-control" id="user_filter" name="user" value="{{ user_filter|default:'' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="branch_filter" class="form-label">Branch:</label>
+                        <select class="form-select" id="branch_filter" name="branch">
+                            <option value="">All Branches</option>
+                            {% for branch in branches %}
+                                <option value="{{ branch.pk }}" {% if selected_branch == branch.pk|stringformat:"s" %}selected{% endif %}>{{ branch.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="from_date" class="form-label">From Date:</label>
+                        <input type="date" class="form-control" id="from_date" name="from_date" value="{{ from_date|default:'' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="to_date" class="form-label">To Date:</label>
+                        <input type="date" class="form-control" id="to_date" name="to_date" value="{{ to_date|default:'' }}">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-9">
+                        <label for="url_query" class="form-label">URL or Description Keyword:</label>
+                        <input type="text" class="form-control" id="url_query" name="url_query" value="{{ url_query|default:'' }}">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100 me-2">Filter</button>
+                        <a href="{% url 'user_activity:log_view' %}" class="btn btn-secondary w-100">Clear Filters</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Activity Logs</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Branch</th> {# New Branch column #}
+                            <th>URL</th>
+                            <th>Method</th>
+                            <th>Description</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in page_obj %}
+                        <tr>
+                            <td>{{ log.user.email }}</td>
+                            <td>{{ log.user.branch.name|default:"N/A" }}</td> {# Display user's branch #}
+                            <td>{{ log.url }}</td>
+                            <td>{{ log.method }}</td>
+                            <td>{{ log.action_description|default:"N/A" }}</td>
+                            <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6">No activity logs found.</td> {# Updated colspan #}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if page_obj.has_other_pages %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="{% url_replace page=page_obj.previous_page_number %}">Previous</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                        {% endif %}
+                        {% for i in page_obj.paginator.page_range %}
+                            {% if page_obj.number == i %}
+                                <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                            {% else %}
+                                <li class="page-item"><a class="page-link" href="{% url_replace page=i %}">{{ i }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{% url_replace page=page_obj.next_page_number %}">Next</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">Next</span></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
