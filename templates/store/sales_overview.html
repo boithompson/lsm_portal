@@ -1,5 +1,6 @@
 {% extends "home/base.html" %}
 {% load static %}
+{% load custom_tags %} {# Added custom_tags load here #}
 
 {% load humanize %}
 {% block title %}Sales Overview{% endblock %}
@@ -53,7 +54,7 @@
                             <div class="text-muted mb-2">
                                 Total Transactions: {{ summary.total_overall_sales }}
                             </div>
-                            <a href="{% url 'store:sales_detail_branch' branch_pk=summary.branch.pk %}" class="btn btn-sm btn-primary mt-2">View Details</a>
+                            <a href="{% url_replace path=summary.branch.get_absolute_url_for_sales_list from_date=from_date to_date=to_date %}" class="btn btn-sm btn-primary mt-2">View Details</a>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-store fa-2x text-gray-300"></i>

@@ -1,4 +1,5 @@
 from django import template
+from django import forms # Import forms
 
 register = template.Library()
 
@@ -27,6 +28,19 @@ def get_attribute(obj, attr_name):
     Usage: {{ object|get_attribute:attr_name }}
     """
     return getattr(obj, attr_name, "")
+
+
+@register.filter(name='get_item')
+def get_item(obj, key):
+    """
+    Allows accessing dictionary items by key or form fields by name in templates.
+    Usage: {{ dictionary|get_item:key }} or {{ form|get_item:field_name }}
+    """
+    if isinstance(obj, forms.Form):
+        return obj[key] # Access BoundField directly
+    if hasattr(obj, 'get'): # For dictionaries and other objects with a .get method
+        return obj.get(key)
+    return None # Or raise an error, depending on desired behavior
 
 
 @register.filter(name="num_to_words")
@@ -87,3 +101,20 @@ def num_to_words(value):
             result.append(",")
 
     return " ".join(result).strip()
+
+
+@register.simple_tag(takes_context=True)
+def url_replace(context, path=None, **kwargs):
+    """
+    Returns the current URL (or a specified path) with updated GET parameters.
+    Usage: {% url_replace path=request.path page=page_obj.next_page_number category='cash' %}
+    """
+    query = context['request'].GET.copy()
+    for key, value in kwargs.items():
+        query[key] = value
+    
+    # Construct the base path
+    base_path = path if path is not None else context['request'].path
+    
+    # Reconstruct the URL with the new query string
+    return f"{base_path}?{query.urlencode()}" if query else base_path

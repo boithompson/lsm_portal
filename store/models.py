@@ -46,6 +46,14 @@ class SalesRecord(models.Model):
     def __str__(self):
         return f"Sale to {self.customer_name} at {self.branch.name} on {self.sale_date.strftime('%Y-%m-%d')}"
 
+    @property
+    def is_credit_sale(self):
+        return self.credit_owed > 0
+
+    @property
+    def is_cash_sale(self):
+        return self.credit_owed == 0
+
 
 class SalesItem(models.Model):
     sales_record = models.ForeignKey(
@@ -67,3 +75,7 @@ class SalesItem(models.Model):
 
     def __str__(self):
         return f"{self.stock_item.name} (x{self.quantity_sold}) for Sale {self.sales_record.id}"
+
+    @property
+    def subtotal(self):
+        return self.quantity_sold * self.price_at_sale
