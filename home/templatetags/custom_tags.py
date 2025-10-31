@@ -1,4 +1,5 @@
 from django import template
+from django import forms # Import forms
 
 register = template.Library()
 
@@ -27,6 +28,19 @@ def get_attribute(obj, attr_name):
     Usage: {{ object|get_attribute:attr_name }}
     """
     return getattr(obj, attr_name, "")
+
+
+@register.filter(name='get_item')
+def get_item(obj, key):
+    """
+    Allows accessing dictionary items by key or form fields by name in templates.
+    Usage: {{ dictionary|get_item:key }} or {{ form|get_item:field_name }}
+    """
+    if isinstance(obj, forms.Form):
+        return obj[key] # Access BoundField directly
+    if hasattr(obj, 'get'): # For dictionaries and other objects with a .get method
+        return obj.get(key)
+    return None # Or raise an error, depending on desired behavior
 
 
 @register.filter(name="num_to_words")

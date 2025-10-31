@@ -1,0 +1,62 @@
+{% extends 'home/base.html' %}
+{% load custom_tags %} {# Keep this for other filters if needed, or remove if not #}
+
+{% block title %}
+    {% if stock_name %}Edit Stock Centrally{% else %}Add Stock Centrally{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3 class="mb-3">
+        {% if stock_name %}Edit Stock: {{ stock_name }}{% else %}Add New Stock Centrally{% endif %}
+    </h3>
+    <form method="post" class="card p-4">
+        {% csrf_token %}
+
+        {# General Stock Details #}
+        <div class="mb-3">
+            <label for="{{ form.name.id_for_label }}" class="form-label">Stock Name</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+                <div class="text-danger">{{ form.name.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="{{ form.unit_value.id_for_label }}" class="form-label">Unit Value (Optional)</label>
+            {{ form.unit_value }}
+            {% if form.unit_value.errors %}
+                <div class="text-danger">{{ form.unit_value.errors }}</div>
+            {% endif %}
+        </div>
+
+        <hr class="my-4">
+        <h4>Branch Quantities</h4>
+
+        {% for bf in branch_fields %} {# Iterate over the new branch_fields list #}
+            <div class="mb-3">
+                <label for="{{ bf.field.id_for_label }}" class="form-label">
+                    Quantity for {{ bf.branch.name }}
+                </label>
+                {{ bf.field }}
+                {% if bf.field.errors %}
+                    <div class="text-danger">{{ bf.field.errors }}</div>
+                {% endif %}
+            </div>
+        {% endfor %} {# This endfor now correctly closes the loop #}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary mb-3">
+            {% if stock_name %}Update Stock{% else %}Save Stock{% endif %}
+        </button>
+        <a href="{% url 'store:stock_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

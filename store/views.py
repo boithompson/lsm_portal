@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .models import Stock, SalesRecord, SalesItem
-from .forms import StockForm, SalesRecordForm, SalesItemFormSet
+from .forms import StockForm, SalesRecordForm, SalesItemFormSet, CentralStockForm # Import CentralStockForm
 from .export_forms import StockExportForm, SalesExportForm
 from accounts.models import Branch
 from django.db.models import Q, Sum
@@ -38,6 +38,62 @@ def add_stock(request):
         form = StockForm(user=request.user)
 
     return render(request, "store/add_stock.html", {"form": form})
+
+
+@login_required
+def central_add_stock_view(request, stock_name=None):
+    # Only allow admin and manager users
+    if request.user.access_level not in ["admin", "manager"]:
+        messages.error(request, "You do not have permission to access this page.")
+        return redirect("store:stock_list")
+
+    initial_data = {}
+    if stock_name:
+        # Fetch an existing stock item to get general details for pre-population
+        # We assume 'name' is unique enough for a central stock item, or we'd need a UUID for the "master" stock
+        existing_stock_items = Stock.objects.filter(name=stock_name)
+        if existing_stock_items.exists():
+            first_stock_item = existing_stock_items.first()
+            initial_data["name"] = first_stock_item.name
+            initial_data["unit_value"] = first_stock_item.unit_value
+            initial_data["stock_item_id"] = first_stock_item.id # Pass an ID to indicate update mode
+
+            # Pre-populate branch quantities
+            for stock_item in existing_stock_items:
+                field_name = f"quantity_branch_{stock_item.branch.id}"
+                initial_data[field_name] = stock_item.quantity
+        else:
+            messages.warning(request, f"Stock item '{stock_name}' not found for editing.")
+            return redirect("store:central_add_stock") # Redirect to add new if not found
+
+    if request.method == "POST":
+        form = CentralStockForm(request.POST, initial=initial_data)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Stock updated across branches successfully.")
+            return redirect("store:stock_list") # Redirect to stock list or a confirmation page
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = CentralStockForm(initial=initial_data)
+
+    branches = Branch.objects.all().order_by("name")
+    branch_fields = []
+    for branch in branches:
+        field_name = f"quantity_branch_{branch.id}"
+        if field_name in form.fields: # Ensure the field exists in the form
+            branch_fields.append({
+                'branch': branch,
+                'field': form[field_name] # Get the BoundField
+            })
+
+    context = {
+        "form": form,
+        "branches": branches, # Keep branches for general info if needed
+        "branch_fields": branch_fields, # New list of branch and their bound fields
+        "stock_name": stock_name, # Pass stock_name to template for conditional rendering
+    }
+    return render(request, "store/central_add_stock.html", context)
 
 
 @login_required

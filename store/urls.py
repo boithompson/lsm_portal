@@ -16,4 +16,6 @@ urlpatterns = [
     ),
     path("sales/create/", views.create_sales_record, name="create_sales_record"),
     path("sales/export/", views.SalesExportView.as_view(), name="sales_export"),
+    path("stock/central/add/", views.central_add_stock_view, name="central_add_stock"),
+    path("stock/central/edit/<str:stock_name>/", views.central_add_stock_view, name="central_edit_stock"),
 ]
