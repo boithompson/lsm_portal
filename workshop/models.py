@@ -53,13 +53,7 @@ class JobSheet(models.Model):
         null=True,
         related_name="advised_job_sheets",
     )
-    assigned_to = models.ForeignKey(
-        CustomUser,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="assigned_job_sheets",
-    )
+    assigned_to = models.CharField(max_length=255, blank=True, null=True)
     accessories = models.TextField(blank=True)
     job_description = models.TextField()
 
