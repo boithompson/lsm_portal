@@ -12,6 +12,22 @@ def multiply(value, arg):
         return ""
 
 
+@register.filter
+def divide(value, arg):
+    try:
+        return float(value) / float(arg)
+    except (ValueError, TypeError, ZeroDivisionError):
+        return ""
+
+
+@register.filter
+def add(value, arg):
+    try:
+        return float(value) + float(arg)
+    except (ValueError, TypeError):
+        return ""
+
+
 @register.filter(name="naira")
 def naira(value):
     try:

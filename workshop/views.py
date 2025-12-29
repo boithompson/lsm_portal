@@ -26,12 +26,16 @@ def print_proforma_invoice(request, vehicle_id):
     # The apply_vat field should be set when the InternalEstimate is created/edited.
     # We will just use the value stored in the database.
     # Ensure the save method is called to update VAT if parts have changed
-    internal_estimate.save() 
+    internal_estimate.save()
+
+    # Calculate subtotal
+    subtotal = sum(part.price * part.quantity for part in estimate_parts)
 
     context = {
         "vehicle": vehicle,
         "internal_estimate": internal_estimate,
         "estimate_parts": estimate_parts,
+        "subtotal": subtotal,
         "date_now": datetime.date.today(), # Add current date to context
         "vat_applied": internal_estimate.apply_vat,
         "is_invoice": internal_estimate.is_invoice, # Pass invoice status to template

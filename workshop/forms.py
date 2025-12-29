@@ -76,10 +76,11 @@ class JobSheetForm(forms.ModelForm):
 class InternalEstimateForm(forms.ModelForm):
     class Meta:
         model = InternalEstimate
-        fields = ['apply_vat', 'is_invoice']
+        fields = ['apply_vat', 'discount', 'is_invoice']
         # Removed custom widgets to simplify and avoid potential recursion issues
         widgets = {
             'apply_vat': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'discount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
             'is_invoice': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 

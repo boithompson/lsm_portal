@@ -14,7 +14,18 @@
     <div class="card-body">
         <form method="post">
             {% csrf_token %}
-            {{ form.as_p }}
+            <div class="form-group form-check">
+                {{ form.apply_vat }}
+                <label class="form-check-label" for="{{ form.apply_vat.id_for_label }}">Apply VAT (7.5%)</label>
+            </div>
+            <div class="form-group">
+                <label for="{{ form.discount.id_for_label }}">Discount (%)</label>
+                {{ form.discount }}
+            </div>
+            <div class="form-group form-check">
+                {{ form.is_invoice }}
+                <label class="form-check-label" for="{{ form.is_invoice.id_for_label }}">Is Invoice</label>
+            </div>
             <hr>
             <h5>Parts</h5>
             <div class="row">
