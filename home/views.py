@@ -63,7 +63,7 @@ def workshop_access_required(view_func):
         try:
             if not request.user.is_authenticated:
                 return redirect("accounts:login") # Redirect to login if not authenticated
-            if request.user.access_level not in ["admin", "workshop", "procurement"]:
+            if request.user.access_level not in ["admin", "workshop", "procurement", "account"]:
                 messages.error(request, "You do not have permission to access this page.")
                 return redirect("home:dashboard")
             return view_func(request, *args, **kwargs)
