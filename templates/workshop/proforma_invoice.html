@@ -259,23 +259,6 @@
                     <td colspan="4" style="text-align:right;"><b>Discount ({{ internal_estimate.discount }}%)</b></td>
                     <td><b>-{{ subtotal|multiply:internal_estimate.discount|divide:100|naira }}</b></td>
                 </tr>
-                <tr class="total-row">
-                    {% if vat_applied %}
-                        <td colspan="4" style="text-align:right;"><b>Total</b></td>
-                    {% else %}
-                        <td colspan="4" style="text-align:right;"><b>Grand Total</b></td>
-                    {% endif %}
-                    <td><b>{{ internal_estimate.grand_total|naira }}</b></td>
-                </tr>
-                {% else %}
-                <tr class="total-row">
-                    {% if vat_applied %}
-                        <td colspan="4" style="text-align:right;"><b>Total</b></td>
-                    {% else %}
-                        <td colspan="4" style="text-align:right;"><b>Grand Total</b></td>
-                    {% endif %}
-                    <td><b>{{ internal_estimate.grand_total|naira }}</b></td>
-                </tr>
                 {% endif %}
                 {% if vat_applied %}
                 <tr>
