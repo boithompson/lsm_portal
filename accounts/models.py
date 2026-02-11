@@ -81,4 +81,6 @@ class Branch(models.Model):
         return self.name
 
     def get_absolute_url_for_sales_list(self):
-        return reverse('store:sales_list_by_branch_filter', kwargs={'branch_pk': self.pk})
+        return reverse(
+            "store:sales_list_by_branch_filter", kwargs={"branch_pk": self.pk}
+        )

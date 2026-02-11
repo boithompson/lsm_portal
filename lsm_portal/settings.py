@@ -15,7 +15,6 @@ SECRET_KEY = "django-insecure-*+al5wi2-y%dqe%!-4o!7+k3t(%ilt21g&*y@x3mgd%8m*t%1p
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    "lsmportal.pythonanywhere.com",
     "127.0.0.1",
     "lsm-portal.com",
     "www.lsm-portal.com",
@@ -36,7 +35,7 @@ INSTALLED_APPS = [
     "workshop",
     "store",
     "django.contrib.humanize",
-    "user_activity", # Added user_activity app
+    "user_activity",  # Added user_activity app
 ]
 
 MIDDLEWARE = [
@@ -47,7 +46,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "user_activity.middleware.UserActivityMiddleware", # Added UserActivityMiddleware
+    "user_activity.middleware.UserActivityMiddleware",  # Added UserActivityMiddleware
 ]
 
 ROOT_URLCONF = "lsm_portal.urls"

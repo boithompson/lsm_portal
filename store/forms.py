@@ -1,6 +1,6 @@
 from django import forms
 from .models import Stock, SalesRecord, SalesItem
-from accounts.models import Branch # Ensure Branch is imported from accounts.models
+from accounts.models import Branch  # Ensure Branch is imported from accounts.models
 from django.forms import inlineformset_factory
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -9,7 +9,7 @@ from django.db import transaction
 class StockForm(forms.ModelForm):
     unit_value = forms.DecimalField(
         required=False,
-        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.01"})
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
     )
 
     class Meta:
@@ -53,14 +53,12 @@ class CentralStockForm(forms.Form):
                 label=f"Quantity for {branch.name}",
             )
             # If editing an existing stock item, pre-populate quantities
-            if self.initial.get('stock_item_id'):
+            if self.initial.get("stock_item_id"):
                 stock_item = Stock.objects.filter(
-                    name=self.initial['name'],
-                    branch=branch
+                    name=self.initial["name"], branch=branch
                 ).first()
                 if stock_item:
                     self.initial[field_name] = stock_item.quantity
-
 
     def clean(self):
         cleaned_data = super().clean()
@@ -77,12 +75,16 @@ class CentralStockForm(forms.Form):
             if cleaned_data.get(field_name) is not None:
                 any_quantity_provided = True
                 break
-        
+
         if not any_quantity_provided:
             # Only raise error if it's a new stock item and no quantities are provided
             # For existing stock, quantities can be zeroed out
-            if not self.initial.get('stock_item_id'): # Assuming stock_item_id is passed for updates
-                self.add_error(None, "At least one branch must have a quantity assigned.")
+            if not self.initial.get(
+                "stock_item_id"
+            ):  # Assuming stock_item_id is passed for updates
+                self.add_error(
+                    None, "At least one branch must have a quantity assigned."
+                )
 
         return cleaned_data
 
@@ -101,7 +103,7 @@ class CentralStockForm(forms.Form):
                         branch=branch,
                         defaults={"quantity": quantity, "unit_value": unit_value},
                     )
-        return True # Indicate success
+        return True  # Indicate success
 
 
 class SalesRecordForm(forms.ModelForm):
@@ -143,22 +145,28 @@ class SaleRecordUpdateForm(forms.ModelForm):
                 attrs={"class": "form-control", "step": "0.01"}
             ),
             "credit_owed": forms.NumberInput(
-                attrs={"class": "form-control", "step": "0.01", "readonly": "readonly"} # credit_owed will be recalculated
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01",
+                    "readonly": "readonly",
+                }  # credit_owed will be recalculated
             ),
         }
 
     def clean(self):
         cleaned_data = super().clean()
         amount_paid_cash = cleaned_data.get("amount_paid_cash")
-        
+
         # Access the instance to get total_amount
         if self.instance and amount_paid_cash is not None:
             if amount_paid_cash > self.instance.total_amount:
-                self.add_error("amount_paid_cash", "Amount paid cannot exceed total amount.")
-            
+                self.add_error(
+                    "amount_paid_cash", "Amount paid cannot exceed total amount."
+                )
+
             # Recalculate credit_owed based on new amount_paid_cash
             cleaned_data["credit_owed"] = self.instance.total_amount - amount_paid_cash
-        
+
         return cleaned_data
 
 

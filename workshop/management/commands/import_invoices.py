@@ -32,7 +32,9 @@ class Command(BaseCommand):
 
         for sheet_name in wb.sheetnames:
             try:
-                self.stdout.write(self.style.NOTICE(f"📄 Processing sheet: {sheet_name}"))
+                self.stdout.write(
+                    self.style.NOTICE(f"📄 Processing sheet: {sheet_name}")
+                )
 
                 ws = wb[sheet_name]
 
@@ -53,7 +55,9 @@ class Command(BaseCommand):
                 if not all([customer_name, vehicle_make, model, licence_plate]):
                     skipped_sheets.append(sheet_name)
                     self.stdout.write(
-                        self.style.WARNING(f"⚠️ Skipped '{sheet_name}' — missing essential vehicle data")
+                        self.style.WARNING(
+                            f"⚠️ Skipped '{sheet_name}' — missing essential vehicle data"
+                        )
                     )
                     continue
 
@@ -61,7 +65,8 @@ class Command(BaseCommand):
                 try:
                     date_of_first_registration = (
                         datetime.strptime(str(date_str), "%d/%m/%Y").date()
-                        if date_str else datetime.now().date()
+                        if date_str
+                        else datetime.now().date()
                     )
                 except Exception:
                     date_of_first_registration = datetime.now().date()
@@ -123,7 +128,9 @@ class Command(BaseCommand):
                         if isinstance(total_amount, (int, float)):
                             total_amount = Decimal(str(round(total_amount, 2)))
                         elif isinstance(total_amount, str):
-                            total_amount = Decimal(total_amount.replace(",", "").strip() or "0")
+                            total_amount = Decimal(
+                                total_amount.replace(",", "").strip() or "0"
+                            )
                         else:
                             total_amount = Decimal("0.00")
                     except (InvalidOperation, TypeError, ValueError):
@@ -131,7 +138,11 @@ class Command(BaseCommand):
 
                     # ✅ Calculate unit price
                     try:
-                        price = (total_amount / quantity).quantize(Decimal("0.01")) if quantity > 0 else Decimal("0.00")
+                        price = (
+                            (total_amount / quantity).quantize(Decimal("0.01"))
+                            if quantity > 0
+                            else Decimal("0.00")
+                        )
                     except (ArithmeticError, TypeError, InvalidOperation):
                         price = Decimal("0.00")
 
@@ -153,15 +164,23 @@ class Command(BaseCommand):
                 try:
                     if vat_value and "7.5" in str(vat_value):
                         estimate.apply_vat = True
-                        estimate.vat_amount = (parts_total * Decimal("0.075")).quantize(Decimal("0.01"))
-                        estimate.total_with_vat = (parts_total + estimate.vat_amount).quantize(Decimal("0.01"))
+                        estimate.vat_amount = (parts_total * Decimal("0.075")).quantize(
+                            Decimal("0.01")
+                        )
+                        estimate.total_with_vat = (
+                            parts_total + estimate.vat_amount
+                        ).quantize(Decimal("0.01"))
                     else:
                         estimate.apply_vat = False
                         estimate.vat_amount = Decimal("0.00")
                         estimate.total_with_vat = parts_total.quantize(Decimal("0.01"))
                     estimate.save()
                 except Exception as e:
-                    self.stdout.write(self.style.ERROR(f"VAT calculation error in '{sheet_name}': {e}"))
+                    self.stdout.write(
+                        self.style.ERROR(
+                            f"VAT calculation error in '{sheet_name}': {e}"
+                        )
+                    )
 
                 self.stdout.write(
                     self.style.SUCCESS(
@@ -175,18 +194,24 @@ class Command(BaseCommand):
                 gc.collect()
 
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f"❌ Error in sheet '{sheet_name}': {e}"))
+                self.stdout.write(
+                    self.style.ERROR(f"❌ Error in sheet '{sheet_name}': {e}")
+                )
                 continue
 
         wb.close()
 
         # ✅ Summary
-        self.stdout.write(self.style.SUCCESS(
-            f"\n🎯 Import complete!\n"
-            f"Vehicles imported: {total_vehicles}\n"
-            f"Internal Estimates: {total_estimates}\n"
-            f"Estimate Parts: {total_parts}\n"
-        ))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"\n🎯 Import complete!\n"
+                f"Vehicles imported: {total_vehicles}\n"
+                f"Internal Estimates: {total_estimates}\n"
+                f"Estimate Parts: {total_parts}\n"
+            )
+        )
 
         if skipped_sheets:
-            self.stdout.write(self.style.WARNING(f"⚠️ Skipped sheets: {', '.join(skipped_sheets)}"))
+            self.stdout.write(
+                self.style.WARNING(f"⚠️ Skipped sheets: {', '.join(skipped_sheets)}")
+            )

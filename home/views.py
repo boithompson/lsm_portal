@@ -4,7 +4,13 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.forms import inlineformset_factory
 from accounts.models import CustomUser, Branch
-from workshop.models import Vehicle, JobSheet, InternalEstimate, EstimatePart, VehicleStatus
+from workshop.models import (
+    Vehicle,
+    JobSheet,
+    InternalEstimate,
+    EstimatePart,
+    VehicleStatus,
+)
 from store.models import Stock  # Import Stock model
 from django.contrib import messages
 from django.contrib.auth import logout
@@ -57,25 +63,40 @@ def staffs(request):
 from django.contrib.auth.mixins import AccessMixin
 from functools import wraps
 
+
 def workshop_access_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         try:
             if not request.user.is_authenticated:
-                return redirect("accounts:login") # Redirect to login if not authenticated
-            if request.user.access_level not in ["admin", "workshop", "procurement", "account"]:
-                messages.error(request, "You do not have permission to access this page.")
+                return redirect(
+                    "accounts:login"
+                )  # Redirect to login if not authenticated
+            if request.user.access_level not in [
+                "admin",
+                "workshop",
+                "procurement",
+                "account",
+            ]:
+                messages.error(
+                    request, "You do not have permission to access this page."
+                )
                 return redirect("home:dashboard")
             return view_func(request, *args, **kwargs)
         except Exception as e:
             logger.exception("Error in workshop_access_required decorator:")
-            messages.error(request, f"An unexpected error occurred in access check: {e}")
-            return redirect("home:dashboard") # Redirect to a safe page
+            messages.error(
+                request, f"An unexpected error occurred in access check: {e}"
+            )
+            return redirect("home:dashboard")  # Redirect to a safe page
+
     return _wrapped_view
+
 
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 @login_required
 @workshop_access_required
@@ -93,11 +114,15 @@ def workshop(request):
                 vehicles = vehicles.filter(branch__id=selected_branch_id)
         else:
             if request.user.branch:
-                vehicles = Vehicle.objects.filter(branch=request.user.branch).order_by("-id")  # Order by newest first
+                vehicles = Vehicle.objects.filter(branch=request.user.branch).order_by(
+                    "-id"
+                )  # Order by newest first
             else:
                 # If a non-admin user has no branch assigned, they shouldn't see any vehicles
                 vehicles = Vehicle.objects.none()
-            branches = []  # no need to show branches to non-admins, but provide an empty list
+            branches = (
+                []
+            )  # no need to show branches to non-admins, but provide an empty list
 
         if query:
             vehicles = vehicles.filter(
@@ -126,7 +151,7 @@ def workshop(request):
     except Exception as e:
         logger.exception("Error in workshop view:")
         messages.error(request, f"An unexpected error occurred: {e}")
-        return redirect("home:dashboard") # Redirect to a safe page
+        return redirect("home:dashboard")  # Redirect to a safe page
 
 
 @login_required
@@ -212,7 +237,10 @@ def update_vehicle_status(request, vehicle_id):
 @workshop_access_required
 def delete_vehicle(request, vehicle_id):
     vehicle = Vehicle.objects.get(id=vehicle_id)
-    if request.user.access_level in ["admin", "manager",]:
+    if request.user.access_level in [
+        "admin",
+        "manager",
+    ]:
         vehicle.delete()
         messages.success(request, "Vehicle record deleted successfully.")
     else:
@@ -271,7 +299,7 @@ def create_internal_estimate(request, vehicle_id):
         if form.is_valid():
             internal_estimate = form.save(commit=False)
             internal_estimate.vehicle = vehicle
-            internal_estimate.save() # Save the InternalEstimate instance first to get a PK
+            internal_estimate.save()  # Save the InternalEstimate instance first to get a PK
 
             formset = EstimatePartFormSet(request.POST, instance=internal_estimate)
             if formset.is_valid():
@@ -279,7 +307,10 @@ def create_internal_estimate(request, vehicle_id):
                 messages.success(request, "Internal Estimate created successfully.")
                 return redirect("home:vehicle_detail", vehicle_id=vehicle.id)
             else:
-                messages.error(request, "Error creating estimate parts. Please check the form for errors.")
+                messages.error(
+                    request,
+                    "Error creating estimate parts. Please check the form for errors.",
+                )
                 # If formset is invalid, re-render the form with errors
                 # Ensure formset is re-initialized with the instance for rendering
                 formset = EstimatePartFormSet(request.POST, instance=internal_estimate)
@@ -290,11 +321,16 @@ def create_internal_estimate(request, vehicle_id):
                 }
                 return render(request, "home/create_internal_estimate.html", context)
         else:
-            messages.error(request, "Error creating internal estimate. Please check the form for errors.")
+            messages.error(
+                request,
+                "Error creating internal estimate. Please check the form for errors.",
+            )
             # If form is invalid, re-render the form with errors
             # Re-initialize formset with the unsaved internal_estimate for rendering
-            internal_estimate = form.save(commit=False) # Get the unsaved instance from the invalid form
-            internal_estimate.vehicle = vehicle # Ensure vehicle is set
+            internal_estimate = form.save(
+                commit=False
+            )  # Get the unsaved instance from the invalid form
+            internal_estimate.vehicle = vehicle  # Ensure vehicle is set
             formset = EstimatePartFormSet(request.POST, instance=internal_estimate)
             context = {
                 "form": form,
@@ -334,9 +370,15 @@ def edit_internal_estimate(request, vehicle_id):
                 messages.success(request, "Internal Estimate updated successfully.")
                 return redirect("home:vehicle_detail", vehicle_id=vehicle.id)
             else:
-                messages.error(request, "Error updating estimate parts. Please check the form for errors.")
+                messages.error(
+                    request,
+                    "Error updating estimate parts. Please check the form for errors.",
+                )
         else:
-            messages.error(request, "Error updating internal estimate. Please check the form for errors.")
+            messages.error(
+                request,
+                "Error updating internal estimate. Please check the form for errors.",
+            )
     else:
         form = InternalEstimateForm(instance=internal_estimate)
         formset = EstimatePartFormSet(instance=internal_estimate)
@@ -351,11 +393,14 @@ def edit_internal_estimate(request, vehicle_id):
 def custom_404(request, exception):
     return render(request, "404.html", {}, status=404)
 
+
 def custom_500(request):
     return render(request, "500.html", {}, status=500)
 
+
 def custom_403(request, exception):
     return render(request, "403.html", {}, status=403)
+
 
 def custom_400(request, exception):
     return render(request, "400.html", {}, status=400)

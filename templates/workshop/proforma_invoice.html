@@ -207,7 +207,7 @@
                                 <tr><td>Company Name:</td><td>{{ vehicle.customer_name }}</td></tr>
                                 <tr><td>Address:</td><td>{{ vehicle.address }}</td></tr>
                                 <tr><td>Phone:</td><td>{{ vehicle.phone }}</td></tr>
-                                <tr><td>Date:</td><td>{{ date_now|date:"Y-m-d" }}</td></tr>
+                                <tr><td>Date:</td><td>{% if date_selected == "now" %}{{ date_now|date:"Y-m-d" }}{% else %}{{ vehicle.date_created|date:"Y-m-d" }}{% endif %}</td></tr>
                                 <tr><td>Job No:</td><td>{{ vehicle.job_no }}</td></tr>
                             </table>
                         </div>

@@ -2,15 +2,18 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from home import views as home_views # Import custom error views
+from home import views as home_views  # Import custom error views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("accounts.urls")),
     path("", include("store.urls")),
     path("dashboard/", include("home.urls")),
-    path("dashboard/", include("workshop.urls")), # Include workshop app URLs
-    path("activity/", include(("user_activity.urls", "user_activity"), namespace="user_activity")), # Include user_activity app URLs under /admin/ with explicit namespace
+    path("dashboard/", include("workshop.urls")),  # Include workshop app URLs
+    path(
+        "activity/",
+        include(("user_activity.urls", "user_activity"), namespace="user_activity"),
+    ),  # Include user_activity app URLs under /admin/ with explicit namespace
 ]
 
 # Custom error handlers
@@ -21,4 +24,6 @@ handler400 = home_views.custom_400
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) # Add this line for static files
+    urlpatterns += static(
+        settings.STATIC_URL, document_root=settings.STATIC_ROOT
+    )  # Add this line for static files

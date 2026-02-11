@@ -8,7 +8,7 @@ from django.contrib import messages
 
 def login_view(request):
     if request.user.is_authenticated:
-        if request.user.access_level in ['workshop', 'procurement']:
+        if request.user.access_level in ["workshop", "procurement"]:
             return redirect("home:workshop")
         else:
             return redirect("home:dashboard")
@@ -20,7 +20,7 @@ def login_view(request):
             user = authenticate(request, email=email, password=password)
             if user is not None:
                 login(request, user)
-                if user.access_level in ['workshop', 'procurement']:
+                if user.access_level in ["workshop", "procurement"]:
                     return redirect("home:workshop")
                 else:
                     return redirect("home:dashboard")

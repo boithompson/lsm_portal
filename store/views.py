@@ -2,7 +2,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .models import Stock, SalesRecord, SalesItem
-from .forms import StockForm, SalesRecordForm, SalesItemFormSet, CentralStockForm, SaleRecordUpdateForm # Import CentralStockForm and SaleRecordUpdateForm
+from .forms import (
+    StockForm,
+    SalesRecordForm,
+    SalesItemFormSet,
+    CentralStockForm,
+    SaleRecordUpdateForm,
+)  # Import CentralStockForm and SaleRecordUpdateForm
 from .export_forms import StockExportForm, SalesExportForm
 from accounts.models import Branch
 from django.db.models import Q, Sum
@@ -15,7 +21,7 @@ from openpyxl.styles import Font, Border, Side, Alignment
 from django.views import View
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import AccessMixin
-from decimal import Decimal # Import Decimal for precise calculations
+from decimal import Decimal  # Import Decimal for precise calculations
 
 
 @login_required
@@ -59,22 +65,30 @@ def central_add_stock_view(request, stock_name=None):
             first_stock_item = existing_stock_items.first()
             initial_data["name"] = first_stock_item.name
             initial_data["unit_value"] = first_stock_item.unit_value
-            initial_data["stock_item_id"] = first_stock_item.id # Pass an ID to indicate update mode
+            initial_data["stock_item_id"] = (
+                first_stock_item.id
+            )  # Pass an ID to indicate update mode
 
             # Pre-populate branch quantities
             for stock_item in existing_stock_items:
                 field_name = f"quantity_branch_{stock_item.branch.id}"
                 initial_data[field_name] = stock_item.quantity
         else:
-            messages.warning(request, f"Stock item '{stock_name}' not found for editing.")
-            return redirect("store:central_add_stock") # Redirect to add new if not found
+            messages.warning(
+                request, f"Stock item '{stock_name}' not found for editing."
+            )
+            return redirect(
+                "store:central_add_stock"
+            )  # Redirect to add new if not found
 
     if request.method == "POST":
         form = CentralStockForm(request.POST, initial=initial_data)
         if form.is_valid():
             form.save()
             messages.success(request, "Stock updated across branches successfully.")
-            return redirect("store:stock_list") # Redirect to stock list or a confirmation page
+            return redirect(
+                "store:stock_list"
+            )  # Redirect to stock list or a confirmation page
         else:
             messages.error(request, "Please correct the errors below.")
     else:
@@ -84,17 +98,16 @@ def central_add_stock_view(request, stock_name=None):
     branch_fields = []
     for branch in branches:
         field_name = f"quantity_branch_{branch.id}"
-        if field_name in form.fields: # Ensure the field exists in the form
-            branch_fields.append({
-                'branch': branch,
-                'field': form[field_name] # Get the BoundField
-            })
+        if field_name in form.fields:  # Ensure the field exists in the form
+            branch_fields.append(
+                {"branch": branch, "field": form[field_name]}  # Get the BoundField
+            )
 
     context = {
         "form": form,
-        "branches": branches, # Keep branches for general info if needed
-        "branch_fields": branch_fields, # New list of branch and their bound fields
-        "stock_name": stock_name, # Pass stock_name to template for conditional rendering
+        "branches": branches,  # Keep branches for general info if needed
+        "branch_fields": branch_fields,  # New list of branch and their bound fields
+        "stock_name": stock_name,  # Pass stock_name to template for conditional rendering
     }
     return render(request, "store/central_add_stock.html", context)
 
@@ -262,7 +275,8 @@ def sales_list_by_branch(request, branch_pk=None):
     sales_records = sales_records_queryset.order_by("-sale_date")
 
     from django.core.paginator import Paginator
-    paginator = Paginator(sales_records, 20) # Show 20 sales records per page
+
+    paginator = Paginator(sales_records, 20)  # Show 20 sales records per page
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
@@ -272,7 +286,11 @@ def sales_list_by_branch(request, branch_pk=None):
         "selected_category": category,
         "can_create_sales": request.user.access_level == "sales",
         "is_admin_or_manager": request.user.access_level in ["admin", "manager"],
-        "branches": Branch.objects.all() if request.user.access_level in ["admin", "manager"] else [], # For branch filter dropdown
+        "branches": (
+            Branch.objects.all()
+            if request.user.access_level in ["admin", "manager"]
+            else []
+        ),  # For branch filter dropdown
     }
     return render(request, "store/sales_list.html", context)
 
@@ -300,7 +318,9 @@ class SalesRecordDetailView(LoginRequiredMixin, AccessMixin, View):
 
         # Access control for editing
         if request.user.access_level not in ["admin", "manager", "sales"]:
-            messages.error(request, "You do not have permission to edit this sales record.")
+            messages.error(
+                request, "You do not have permission to edit this sales record."
+            )
             return redirect("store:sales_record_detail", pk=pk)
 
         form = SaleRecordUpdateForm(request.POST, instance=sales_record)
@@ -308,32 +328,37 @@ class SalesRecordDetailView(LoginRequiredMixin, AccessMixin, View):
             # Handle "Mark as Paid" button
             if "mark_as_paid" in request.POST:
                 sales_record.amount_paid_cash = sales_record.total_amount
-                sales_record.credit_owed = Decimal('0.00')
+                sales_record.credit_owed = Decimal("0.00")
                 messages.success(request, "Sales record marked as paid.")
             else:
                 # Update fields and recalculate credit_owed
                 new_amount_paid_cash = form.cleaned_data["amount_paid_cash"]
-                
+
                 # Ensure amount_paid_cash does not exceed total_amount
                 if new_amount_paid_cash > sales_record.total_amount:
                     messages.error(request, "Amount paid cannot exceed total amount.")
-                    form = SaleRecordUpdateForm(instance=sales_record) # Re-initialize form with original data
+                    form = SaleRecordUpdateForm(
+                        instance=sales_record
+                    )  # Re-initialize form with original data
                     context = {
                         "sales_record": sales_record,
                         "form": form,
-                        "can_edit": request.user.access_level in ["admin", "manager", "sales"],
+                        "can_edit": request.user.access_level
+                        in ["admin", "manager", "sales"],
                     }
                     return render(request, self.template_name, context)
 
                 sales_record.amount_paid_cash = new_amount_paid_cash
-                sales_record.credit_owed = sales_record.total_amount - sales_record.amount_paid_cash
+                sales_record.credit_owed = (
+                    sales_record.total_amount - sales_record.amount_paid_cash
+                )
                 messages.success(request, "Sales record updated successfully.")
-            
+
             sales_record.save()
             return redirect("store:sales_record_detail", pk=pk)
         else:
             messages.error(request, "Please correct the errors below.")
-        
+
         context = {
             "sales_record": sales_record,
             "form": form,

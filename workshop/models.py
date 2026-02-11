@@ -1,7 +1,7 @@
 from django.db import models
 from accounts.models import CustomUser, Branch
 import uuid
-from decimal import Decimal # Import Decimal for precise calculations
+from decimal import Decimal  # Import Decimal for precise calculations
 
 
 class VehicleStatus(models.TextChoices):
@@ -33,6 +33,8 @@ class Vehicle(models.Model):
     status = models.CharField(
         max_length=20, choices=VehicleStatus.choices, default=VehicleStatus.ESTIMATE
     )
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.vehicle_make} {self.model} ({self.licence_plate})"
@@ -66,10 +68,16 @@ class InternalEstimate(models.Model):
         Vehicle, on_delete=models.CASCADE, related_name="internal_estimate"
     )
     apply_vat = models.BooleanField(default=False)
-    discount = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, default=Decimal('0.00'))
-    is_invoice = models.BooleanField(default=False) # New field
-    vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00')) # New field
-    total_with_vat = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00')) # New field
+    discount = models.DecimalField(
+        max_digits=5, decimal_places=2, blank=True, null=True, default=Decimal("0.00")
+    )
+    is_invoice = models.BooleanField(default=False)  # New field
+    vat_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0.00")
+    )  # New field
+    total_with_vat = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0.00")
+    )  # New field
 
     def __str__(self):
         return f"Internal Estimate for {self.vehicle}"
@@ -83,10 +91,9 @@ class InternalEstimate(models.Model):
                 total += estimate_part.price * estimate_part.quantity
         # Apply discount if set
         if self.discount:
-            discount_amount = total * (self.discount / Decimal('100'))
+            discount_amount = total * (self.discount / Decimal("100"))
             total -= discount_amount
         return total
-
 
 
 class EstimatePart(models.Model):

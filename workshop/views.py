@@ -1,20 +1,28 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Vehicle, InternalEstimate, EstimatePart
-import datetime # Import datetime
+import datetime  # Import datetime
 from functools import wraps
 from django.contrib import messages
+
 
 def workshop_access_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return redirect("accounts:login") # Redirect to login if not authenticated
-        if request.user.access_level not in ["admin", "workshop", "procurement", "account"]:
+            return redirect("accounts:login")  # Redirect to login if not authenticated
+        if request.user.access_level not in [
+            "admin",
+            "workshop",
+            "procurement",
+            "account",
+        ]:
             messages.error(request, "You do not have permission to access this page.")
             return redirect("home:dashboard")
         return view_func(request, *args, **kwargs)
+
     return _wrapped_view
+
 
 @login_required
 @workshop_access_required
@@ -31,13 +39,17 @@ def print_proforma_invoice(request, vehicle_id):
     # Calculate subtotal
     subtotal = sum(part.price * part.quantity for part in estimate_parts)
 
+    # Handle date selection
+    date_selected = request.GET.get("date", "now")  # Default to 'now'
+
     context = {
         "vehicle": vehicle,
         "internal_estimate": internal_estimate,
         "estimate_parts": estimate_parts,
         "subtotal": subtotal,
-        "date_now": datetime.date.today(), # Add current date to context
+        "date_now": datetime.date.today(),  # Add current date to context
+        "date_selected": date_selected,  # Pass selected date option to template
         "vat_applied": internal_estimate.apply_vat,
-        "is_invoice": internal_estimate.is_invoice, # Pass invoice status to template
+        "is_invoice": internal_estimate.is_invoice,  # Pass invoice status to template
     }
     return render(request, "workshop/proforma_invoice.html", context)

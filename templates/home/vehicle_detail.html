@@ -91,7 +91,10 @@
                         <a href="{% url 'home:edit_internal_estimate' vehicle.id %}" class="btn btn-primary btn-sm">Edit Internal Estimate</a>
                     {% endif %}
                     {% if request.user.access_level == 'procurement' or request.user.access_level == 'workshop' or request.user.access_level == 'admin' or request.user.access_level == 'account' %}
-                        <a href="{% url 'workshop:print_proforma_invoice' vehicle.id %}" class="btn btn-info btn-sm ms-2" target="_blank">{% if is_invoice %}Print invoice{% else %}Print proforma invoice{% endif %}</a>
+                        <a href="{% url 'workshop:print_proforma_invoice' vehicle.id %}?date=now" class="btn btn-info btn-sm ms-2" target="_blank">{% if is_invoice %}Print invoice{% else %}Print proforma invoice{% endif %}</a>
+                    {% endif %}
+                    {% if request.user.access_level == 'procurement' or request.user.access_level == 'workshop' or request.user.access_level == 'admin' or request.user.access_level == 'account' %}
+                        <a href="{% url 'workshop:print_proforma_invoice' vehicle.id %}?date=created" class="btn btn-secondary btn-sm ms-2" target="_blank">Print Back Date</a>
                     {% endif %}
                 {% else %}
                     <p>No internal estimate found for this vehicle.</p>
