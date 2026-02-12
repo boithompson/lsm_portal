@@ -38,4 +38,9 @@ urlpatterns = [
         views.edit_internal_estimate,
         name="edit_internal_estimate",
     ),
+    path(
+        "vehicle/<int:vehicle_id>/job_sheet/print/",
+        views.print_job_sheet,
+        name="print_job_sheet",
+    ),
 ]

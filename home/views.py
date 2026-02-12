@@ -21,6 +21,7 @@ from workshop.forms import (
     InternalEstimateForm,
     EstimatePartForm,
 )
+import datetime
 
 
 @login_required
@@ -388,6 +389,20 @@ def edit_internal_estimate(request, vehicle_id):
         "vehicle": vehicle,
     }
     return render(request, "home/edit_internal_estimate.html", context)
+
+
+@login_required
+@workshop_access_required
+def print_job_sheet(request, vehicle_id):
+    vehicle = Vehicle.objects.get(id=vehicle_id)
+    job_sheet = JobSheet.objects.get(vehicle=vehicle)
+
+    context = {
+        "vehicle": vehicle,
+        "job_sheet": job_sheet,
+        "date_now": datetime.date.today(),
+    }
+    return render(request, "home/print_job_sheet.html", context)
 
 
 def custom_404(request, exception):

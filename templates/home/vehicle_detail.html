@@ -46,6 +46,7 @@
                     <p><strong>Job Description:</strong> {{ vehicle.job_sheet.job_description }}</p>
                     {% if request.user.access_level == 'procurement' or request.user.access_level == 'workshop' or request.user.access_level == 'admin' %}
                         <a href="{% url 'home:edit_job_sheet' vehicle.id %}" class="btn btn-primary btn-sm">Edit Job Sheet</a>
+                        <a href="{% url 'home:print_job_sheet' vehicle.id %}" class="btn btn-info btn-sm ms-2" target="_blank">Print Job Sheet</a>
                     {% endif %}
                 {% else %}
                     <p>No job sheet found for this vehicle.</p>
