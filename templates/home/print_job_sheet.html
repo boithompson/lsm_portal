@@ -175,7 +175,7 @@
                         <div class="info-block">
                             <h3>Company (Customer) Details</h3>
                             <table class="details">
-                                <tr><td>Company Name:</td><td>{{ vehicle.customer_name }}</td></tr>
+                                <tr><td>Customer Name:</td><td>{{ vehicle.customer_name }}</td></tr>
                                 <tr><td>Address:</td><td>{{ vehicle.address }}</td></tr>
                                 <tr><td>Phone:</td><td>{{ vehicle.phone }}</td></tr>
                                 <tr><td>Date:</td><td>{{ date_now|date:"d-m-Y" }}</td></tr>
@@ -205,7 +205,7 @@
             <div class="info-block">
                 <h3>Job Sheet Information</h3>
                 <table class="details">
-                    <tr><td>Service Advisor:</td><td>{{ job_sheet.service_advisor.full_name }}</td></tr>
+                    <tr><td>Service Advisor:</td><td>{{ job_sheet.service_advisor }}</td></tr>
                     <tr><td>Assigned To:</td><td>{{ job_sheet.assigned_to }}</td></tr>
                     <tr><td>Accessories:</td><td>{{ job_sheet.accessories }}</td></tr>
                     <tr><td>Job Description:</td><td>{{ job_sheet.job_description }}</td></tr>
