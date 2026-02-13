@@ -109,14 +109,18 @@ def workshop(request):
         selected_branch_id = request.GET.get("branch")  # for admin filtering
 
         if request.user.access_level == "admin":
-            vehicles = Vehicle.objects.all().order_by("-id")  # Order by newest first
+            vehicles = Vehicle.objects.filter(is_master_record=True).order_by(
+                "-id"
+            )  # Order by newest first
             branches = Branch.objects.all()
 
             if selected_branch_id:
                 vehicles = vehicles.filter(branch__id=selected_branch_id)
         else:
             if request.user.branch:
-                vehicles = Vehicle.objects.filter(branch=request.user.branch).order_by(
+                vehicles = Vehicle.objects.filter(
+                    branch=request.user.branch, is_master_record=True
+                ).order_by(
                     "-id"
                 )  # Order by newest first
             else:
