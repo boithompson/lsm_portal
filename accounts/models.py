@@ -30,6 +30,9 @@ class CustomUserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
+    def get_by_natural_key(self, email):
+        return self.get(email__iexact=email)
+
 
 class CustomUser(AbstractBaseUser):
     class AccessLevel(models.TextChoices):

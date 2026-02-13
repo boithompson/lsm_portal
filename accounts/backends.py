@@ -7,11 +7,11 @@ UserModel = get_user_model()
 class EmailOrIdBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         try:
-            # Try to fetch the user by email
-            user = UserModel.objects.get(email=username)
+            # Try to fetch the user by email (case-insensitive)
+            user = UserModel.objects.get(email__iexact=username)
         except UserModel.DoesNotExist:
             try:
-                # Try to fetch the user by unique_id
+                # Try to fetch the user by unique_id (case-sensitive)
                 user = UserModel.objects.get(unique_id=username)
             except UserModel.DoesNotExist:
                 # Neither email nor unique_id matched
