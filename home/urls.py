@@ -43,4 +43,9 @@ urlpatterns = [
         views.print_job_sheet,
         name="print_job_sheet",
     ),
+    path(
+        "chasis-lookup/",
+        views.find_vehicle_by_chasis,
+        name="find_vehicle_by_chasis",
+    ),
 ]

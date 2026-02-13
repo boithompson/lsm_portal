@@ -11,8 +11,14 @@
 <div class="row">
     <div class="col-lg-6">
         <div class="card shadow mb-4">
-            <div class="card-header py-3">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
                 <h6 class="m-0 font-weight-bold text-primary">Vehicle Information</h6>
+                <div>
+                    {% if request.user.access_level == 'procurement' or request.user.access_level == 'workshop' or request.user.access_level == 'admin' %}
+                        <a href="{% url 'home:find_vehicle_by_chasis' %}?chasis_no={{ vehicle.chasis_no }}" class="btn btn-info btn-sm me-2">Job History</a>
+                        <a href="{% url 'home:add_vehicle' %}?chasis_no={{ vehicle.chasis_no }}&master_id={{ vehicle.id }}" class="btn btn-success btn-sm">Create New Job</a>
+                    {% endif %}
+                </div>
             </div>
             <div class="card-body">
                 {% if vehicle.image %}
@@ -30,6 +36,7 @@
                 <p><strong>Mileage:</strong> {{ vehicle.mileage }}</p>
                 <p><strong>Complaint:</strong> {{ vehicle.complaint }}</p>
                 <p><strong>Status:</strong> {{ vehicle.get_status_display }}</p>
+                
             </div>
         </div>
     </div>

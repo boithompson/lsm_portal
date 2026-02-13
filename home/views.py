@@ -21,6 +21,7 @@ from workshop.forms import (
     InternalEstimateForm,
     EstimatePartForm,
 )
+from django.core.paginator import Paginator
 import datetime
 
 
@@ -131,6 +132,7 @@ def workshop(request):
                 | Q(vehicle_make__icontains=query)
                 | Q(model__icontains=query)
                 | Q(licence_plate__icontains=query)
+                | Q(chasis_no__icontains=query)
             )
 
         if status:
@@ -157,6 +159,74 @@ def workshop(request):
 
 @login_required
 @workshop_access_required
+def find_vehicle_by_chasis(request):
+    """Chasis number lookup view for finding existing vehicles"""
+    if request.method == "POST":
+        chasis_no = request.POST.get("chasis_no", "").strip()
+        if chasis_no:
+            # Case-insensitive chasis number lookup
+            vehicles = Vehicle.objects.filter(chasis_no__iexact=chasis_no)
+            if vehicles.exists():
+                # Show service history for this chasis number
+                master_vehicle = vehicles.filter(is_master_record=True).first()
+                service_records = vehicles.filter(is_master_record=False).order_by(
+                    "-date_created"
+                )
+
+                # Paginate service records
+                paginator = Paginator(
+                    service_records, 10
+                )  # Show 10 service records per page
+                page_number = request.GET.get("page")
+                page_obj = paginator.get_page(page_number)
+
+                # Calculate total visits including master vehicle
+                total_visits = vehicles.count()
+
+                context = {
+                    "chasis_no": chasis_no,
+                    "master_vehicle": master_vehicle,
+                    "service_records": page_obj,
+                    "total_visits": total_visits,
+                    "record_status_choices": VehicleStatus.choices,
+                }
+                return render(request, "home/vehicle_chasis_lookup.html", context)
+            else:
+                messages.info(request, f"No vehicle found with Chasis No: {chasis_no}")
+        else:
+            messages.error(request, "Please enter a Chasis Number")
+
+    # Handle GET request with chasis_no parameter (from vehicle detail page)
+    chasis_no = request.GET.get("chasis_no", "").strip()
+    if chasis_no:
+        vehicles = Vehicle.objects.filter(chasis_no__iexact=chasis_no)
+        if vehicles.exists():
+            master_vehicle = vehicles.filter(is_master_record=True).first()
+            service_records = vehicles.order_by("-date_created")
+
+            # Paginate service records
+            paginator = Paginator(
+                service_records, 10
+            )  # Show 10 service records per page
+            page_number = request.GET.get("page")
+            page_obj = paginator.get_page(page_number)
+
+            context = {
+                "chasis_no": chasis_no,
+                "master_vehicle": master_vehicle,
+                "service_records": page_obj,
+                "total_visits": vehicles.count(),
+                "record_status_choices": VehicleStatus.choices,
+            }
+            return render(request, "home/vehicle_chasis_lookup.html", context)
+        else:
+            messages.info(request, f"No vehicle found with Chasis No: {chasis_no}")
+
+    return render(request, "home/chasis_lookup.html")
+
+
+@login_required
+@workshop_access_required
 def vehicle_detail(request, vehicle_id):
     vehicle = Vehicle.objects.get(id=vehicle_id)
     internal_estimate = InternalEstimate.objects.filter(vehicle=vehicle).first()
@@ -179,20 +249,111 @@ def add_vehicle(request):
             )
 
         if form.is_valid():
-            vehicle = form.save(commit=False)
+            chasis_no = form.cleaned_data.get("chasis_no")
+            master_id = request.GET.get("master_id")
 
-            if request.user.access_level == "admin":
-                # Admin-selected branch is included in POST data
-                vehicle.branch = form.cleaned_data["branch"]
+            if chasis_no and master_id:
+                # Creating a new job for an existing vehicle
+                try:
+                    master_vehicle = Vehicle.objects.get(
+                        id=master_id, chasis_no__iexact=chasis_no
+                    )
+                    vehicle = form.save(commit=False)
+                    vehicle.master_vehicle = master_vehicle
+                    vehicle.is_master_record = False
+                    vehicle.branch = master_vehicle.branch
+
+                    # Auto-generate job number
+                    import datetime
+
+                    today = datetime.date.today()
+                    year = today.year
+                    month = today.month
+                    day = today.day
+
+                    # Get the next job number for this vehicle
+                    existing_jobs = Vehicle.objects.filter(
+                        master_vehicle=master_vehicle, is_master_record=False
+                    ).count()
+                    job_number = f"{master_vehicle.uuid}-{year:04d}-{month:02d}-{day:02d}-{existing_jobs + 1:03d}"
+                    vehicle.job_no = job_number
+
+                except Vehicle.DoesNotExist:
+                    # Fallback to regular logic if master vehicle not found
+                    existing_vehicles = Vehicle.objects.filter(
+                        chasis_no__iexact=chasis_no
+                    )
+                    if existing_vehicles.exists():
+                        master_vehicle = existing_vehicles.first()
+                        vehicle = form.save(commit=False)
+                        vehicle.master_vehicle = master_vehicle
+                        vehicle.is_master_record = False
+                        vehicle.branch = master_vehicle.branch
+                    else:
+                        vehicle = form.save(commit=False)
+                        vehicle.is_master_record = True
+                        if request.user.access_level == "admin":
+                            vehicle.branch = form.cleaned_data["branch"]
+                        else:
+                            vehicle.branch = request.user.branch
+            elif chasis_no:
+                # Check if vehicle with this chasis_no already exists
+                existing_vehicles = Vehicle.objects.filter(chasis_no__iexact=chasis_no)
+                if existing_vehicles.exists():
+                    # Create a new service record linked to the master vehicle
+                    master_vehicle = existing_vehicles.first()
+                    vehicle = form.save(commit=False)
+                    vehicle.master_vehicle = master_vehicle
+                    vehicle.is_master_record = False
+                    vehicle.branch = (
+                        master_vehicle.branch
+                    )  # Use master vehicle's branch
+                else:
+                    # Create new master vehicle record
+                    vehicle = form.save(commit=False)
+                    vehicle.is_master_record = True
+                    if request.user.access_level == "admin":
+                        vehicle.branch = form.cleaned_data["branch"]
+                    else:
+                        vehicle.branch = request.user.branch
             else:
-                # Auto-assign user's branch
-                vehicle.branch = request.user.branch
+                # No chasis_no provided, create as master record
+                vehicle = form.save(commit=False)
+                vehicle.is_master_record = True
+                if request.user.access_level == "admin":
+                    vehicle.branch = form.cleaned_data["branch"]
+                else:
+                    vehicle.branch = request.user.branch
 
             vehicle.save()
             messages.success(request, "Vehicle created successfully.")
             return redirect("home:workshop")
     else:
-        form = VehicleForm()
+        # Pre-populate form if coming from vehicle detail page
+        chasis_no = request.GET.get("chasis_no")
+        master_id = request.GET.get("master_id")
+
+        if chasis_no and master_id:
+            try:
+                master_vehicle = Vehicle.objects.get(
+                    id=master_id, chasis_no__iexact=chasis_no
+                )
+                initial_data = {
+                    "customer_name": master_vehicle.customer_name,
+                    "address": master_vehicle.address,
+                    "phone": master_vehicle.phone,
+                    "vehicle_make": master_vehicle.vehicle_make,
+                    "model": master_vehicle.model,
+                    "year": master_vehicle.year,
+                    "chasis_no": master_vehicle.chasis_no,
+                    "date_of_first_registration": master_vehicle.date_of_first_registration,
+                }
+                form = VehicleForm(initial=initial_data)
+            except Vehicle.DoesNotExist:
+                form = VehicleForm()
+        else:
+            form = VehicleForm()
+
         if request.user.access_level == "admin":
             form.fields["branch"] = forms.ModelChoiceField(
                 queryset=Branch.objects.all(),

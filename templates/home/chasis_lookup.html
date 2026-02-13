@@ -1,0 +1,70 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}Chasis Number Lookup - LSM Portal{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Chasis Number Lookup</h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Find Vehicle by Chasis Number</h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="chasis_no">Chasis Number</label>
+                        <input type="text" class="form-control" id="chasis_no" name="chasis_no" placeholder="Enter vehicle chasis number" maxlength="100">
+                        <small class="form-text text-muted">Enter the chasis number to find existing vehicle records and service history.</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Search Vehicle</button>
+                    <a href="{% url 'home:workshop' %}" class="btn btn-secondary">Back to Workshop</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>What is Chasis Number?</strong></p>
+                <p>The chasis number is a unique identifier for your vehicle's frame, typically found on the vehicle's frame or VIN plate.</p>
+                
+                <p><strong>Benefits of Chasis Number Lookup:</strong></p>
+                <ul>
+                    <li>Quickly find returning vehicles</li>
+                    <li>View complete service history</li>
+                    <li>Access master vehicle information</li>
+                    <li>Streamline the check-in process</li>
+                </ul>
+                
+                <p><strong>Need to create a new vehicle?</strong></p>
+                <a href="{% url 'home:add_vehicle' %}" class="btn btn-success">Add New Vehicle</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if messages %}
+<div class="row">
+    <div class="col-lg-12">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

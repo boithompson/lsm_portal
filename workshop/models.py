@@ -25,7 +25,7 @@ class Vehicle(models.Model):
     vehicle_make = models.CharField(max_length=100)
     model = models.CharField(max_length=100)
     year = models.PositiveIntegerField()
-    chasis_no = models.CharField(max_length=100)
+    chasis_no = models.CharField(max_length=100, db_index=True)
     licence_plate = models.CharField(max_length=20)
     date_of_first_registration = models.DateField()
     mileage = models.CharField(max_length=50, blank=True, null=True)
@@ -35,6 +35,14 @@ class Vehicle(models.Model):
     )
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
+    is_master_record = models.BooleanField(default=True)
+    master_vehicle = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="duplicate_vehicles",
+    )
 
     def __str__(self):
         return f"{self.vehicle_make} {self.model} ({self.licence_plate})"
