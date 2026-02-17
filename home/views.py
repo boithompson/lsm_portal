@@ -1,7 +1,7 @@
 from django import forms
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.forms import inlineformset_factory
 from accounts.models import CustomUser, Branch
 from workshop.models import (
@@ -109,10 +109,10 @@ def workshop(request):
         selected_branch_id = request.GET.get("branch")  # for admin filtering
 
         if request.user.access_level == "admin":
-            vehicles = Vehicle.objects.filter(is_master_record=True).order_by(
-                "-id"
-            )  # Order by newest first
-            branches = Branch.objects.all()
+            vehicles = Vehicle.objects.filter(is_master_record=True).annotate(
+                latest_service_date=Max('duplicate_vehicles__date_created')
+            ).order_by('-latest_service_date', '-id')
+            branches = Branch.objects.all() # for filter dropdown
 
             if selected_branch_id:
                 vehicles = vehicles.filter(branch__id=selected_branch_id)
@@ -120,9 +120,9 @@ def workshop(request):
             if request.user.branch:
                 vehicles = Vehicle.objects.filter(
                     branch=request.user.branch, is_master_record=True
-                ).order_by(
-                    "-id"
-                )  # Order by newest first
+                ).annotate(
+                    latest_service_date=Max('duplicate_vehicles__date_created')
+                ).order_by('-latest_service_date', '-id')
             else:
                 # If a non-admin user has no branch assigned, they shouldn't see any vehicles
                 vehicles = Vehicle.objects.none()
