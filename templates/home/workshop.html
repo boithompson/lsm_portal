@@ -56,7 +56,6 @@
                     <th>Make</th>
                     <th>Model</th>
                     <th>License Plate</th>
-                    <th>Status</th>
                     <th>Branch</th>
                 </tr>
             </thead>
@@ -67,7 +66,6 @@
                     <td>{{ vehicle.vehicle_make }}</td>
                     <td>{{ vehicle.model }}</td>
                     <td>{{ vehicle.licence_plate }}</td>
-                    <td>{{ vehicle.get_status_display }}</td>
                     <td>{% if vehicle.branch %}{{ vehicle.branch.name }}{% else %}N/A{% endif %}</td>
                 </tr>
                 <!-- Update Status Modal -->
