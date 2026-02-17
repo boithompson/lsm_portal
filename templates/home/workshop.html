@@ -55,7 +55,7 @@
                     <th>Customer</th>
                     <th>Make</th>
                     <th>Model</th>
-                    <th>License Plate</th>
+                    <th>Chasis No</th>
                     <th>Branch</th>
                 </tr>
             </thead>
@@ -65,7 +65,7 @@
                     <td><a href="{% url 'home:find_vehicle_by_chasis' %}?chasis_no={{ vehicle.chasis_no }}" class="text-decoration-none">{{ vehicle.customer_name }}</a></td>
                     <td>{{ vehicle.vehicle_make }}</td>
                     <td>{{ vehicle.model }}</td>
-                    <td>{{ vehicle.licence_plate }}</td>
+                    <td>{{ vehicle.chasis_no }}</td>
                     <td>{% if vehicle.branch %}{{ vehicle.branch.name }}{% else %}N/A{% endif %}</td>
                 </tr>
                 <!-- Update Status Modal -->
