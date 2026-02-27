@@ -293,9 +293,15 @@
             <br/>
             <b>E.</b>&nbsp;&nbsp;&nbsp;&nbsp;Prices of parts or materials are subject to change without prior notice to customers.												
             <br/>
-            <b>F.</b>&nbsp;&nbsp;&nbsp;&nbsp;<b>Payments can be made to the following accounts: "Lanre Shittu Motors ABJ Workshop, Account No: 5381506500, Bank: Moneipoint Microfinance Bank".</b>											
+            <b>F.</b>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: blue; font-weight: bold;">
+                {% if vehicle.branch.bank_name and vehicle.branch.account_number and vehicle.branch.account_name %}
+                    Payments can be made to the following account: {{ vehicle.branch.account_name }}, {{ vehicle.branch.bank_name }}, Account No: {{ vehicle.branch.account_number }}
+                {% else %}
+                    Payments can be made to the following accounts: "Lanre Shittu Motors ABJ Workshop, Account No: 5381506500, Bank: Moneipoint Microfinance Bank"
+                {% endif %}
+            </span>
             <br/>
-            <b>G.</b>&nbsp;&nbsp;&nbsp;&nbsp;Call this number <b>08070690006</b> to book your next appointment.
+            <b>G.</b>&nbsp;&nbsp;&nbsp;&nbsp;Call this number <b>{{ vehicle.branch.workshop_manager_phone }}</b> to book your next appointment.
         </p>					
         <div style="margin-top: 60px; display: flex; justify-content: space-between;">
             <div style="width: 300px; text-align: center; border-top: 1px solid #000; padding-top: 5px;">
@@ -306,7 +312,16 @@
                     Rafiu Adelani Ogunlowo
                 {% endif %}
             </p>
-            <p style="font-weight: bold; margin-top: 0;">Workshop Manager</p>
+            <p style="margin-top: 0;">Workshop Manager</p>
+            {% if vehicle.branch.address %}
+                <p style="font-weight: bold; font-size: 12px; margin: 2px 0;"><strong>{{ vehicle.branch.address }}</strong></p>
+            {% endif %}
+            {% if vehicle.branch.workshop_manager_phone %}
+                <p style="font-size: 12px; margin: 2px 0;">Phone: {{ vehicle.branch.workshop_manager_phone }}</p>
+            {% endif %}
+            {% if vehicle.branch.workshop_manager_email %}
+                <p style="font-size: 12px; margin: 2px 0;">Email: {{ vehicle.branch.workshop_manager_email }}</p>
+            {% endif %}
             </div>	
             <div style="width: 300px; text-align: center; border-top: 1px solid #000; padding-top: 5px;">
             <p style="font-size: 16px; font-weight: 700; margin-bottom:0;">
@@ -316,7 +331,16 @@
                     GBENGA ONI
                 {% endif %}
             </p>
-            <p style="font-weight: bold; margin-top:0;">Service Advisor</p>
+            <p style="margin-top:0;">Service Advisor</p>
+            {% if vehicle.branch.address %}
+                <p style="font-weight: bold; font-size: 12px; margin: 2px 0;"><strong>{{ vehicle.branch.address }}</strong></p>
+            {% endif %}
+            {% if vehicle.branch.service_advisor_phone %}
+                <p style="font-size: 12px; margin: 2px 0;">Phone: {{ vehicle.branch.service_advisor_phone }}</p>
+            {% endif %}
+            {% if vehicle.branch.service_advisor_email %}
+                <p style="font-size: 12px; margin: 2px 0;">Email: {{ vehicle.branch.service_advisor_email }}</p>
+            {% endif %}
             </div>
         </div>
     </div>

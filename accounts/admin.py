@@ -24,17 +24,39 @@ class BranchAdmin(admin.ModelAdmin):
         "address",
         "workshop_manager_name",
         "service_advisor_name",
+        "bank_name",
         "created_at",
     )
-    search_fields = ("name", "address", "workshop_manager_name", "service_advisor_name")
+    search_fields = (
+        "name",
+        "address",
+        "workshop_manager_name",
+        "service_advisor_name",
+        "bank_name",
+        "account_name",
+    )
     ordering = ("name",)
     fieldsets = (
         (None, {"fields": ("name", "address")}),
         (
             "Signatory Information",
             {
-                "fields": ("workshop_manager_name", "service_advisor_name"),
-                "description": "Branch-specific signatory names for invoice printing",
+                "fields": (
+                    "workshop_manager_name",
+                    "workshop_manager_phone",
+                    "workshop_manager_email",
+                    "service_advisor_name",
+                    "service_advisor_phone",
+                    "service_advisor_email",
+                ),
+                "description": "Branch-specific signatory names and contact information for invoice printing",
+            },
+        ),
+        (
+            "Account Details",
+            {
+                "fields": ("bank_name", "account_number", "account_name"),
+                "description": "Branch bank account details for payment processing",
             },
         ),
     )

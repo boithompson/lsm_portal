@@ -84,6 +84,17 @@ class Branch(models.Model):
     workshop_manager_name = models.CharField(max_length=255, blank=True, null=True)
     service_advisor_name = models.CharField(max_length=255, blank=True, null=True)
 
+    # Contact information for signatories
+    workshop_manager_phone = models.CharField(max_length=20, blank=True, null=True)
+    workshop_manager_email = models.EmailField(blank=True, null=True)
+    service_advisor_phone = models.CharField(max_length=20, blank=True, null=True)
+    service_advisor_email = models.EmailField(blank=True, null=True)
+
+    # Branch account details
+    bank_name = models.CharField(max_length=100, blank=True, null=True)
+    account_number = models.CharField(max_length=20, blank=True, null=True)
+    account_name = models.CharField(max_length=255, blank=True, null=True)
+
     def __str__(self):
         return self.name
 
