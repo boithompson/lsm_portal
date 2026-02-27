@@ -4,7 +4,11 @@ from django.conf import settings
 
 class UserActivityLog(models.Model):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_index=True
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_index=True,
     )
     url = models.CharField(max_length=255)
     method = models.CharField(max_length=10)

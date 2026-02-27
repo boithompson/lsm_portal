@@ -29,8 +29,10 @@ def update_internal_estimate_totals(sender, instance, **kwargs):
     new_total_with_vat = current_grand_total
 
     if internal_estimate.apply_vat:
-        new_vat_amount = current_grand_total * Decimal("0.075")  # 7.5% VAT
-        new_total_with_vat = current_grand_total + new_vat_amount
+        new_vat_amount = Decimal(str(current_grand_total)) * Decimal(
+            "0.075"
+        )  # 7.5% VAT
+        new_total_with_vat = Decimal(str(current_grand_total)) + new_vat_amount
 
     # Only save if the calculated values are different from the current values on the instance
     if (internal_estimate.vat_amount != new_vat_amount) or (
