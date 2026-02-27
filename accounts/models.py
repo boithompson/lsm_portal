@@ -80,6 +80,10 @@ class Branch(models.Model):
     address = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # Branch-specific signatory fields for invoices
+    workshop_manager_name = models.CharField(max_length=255, blank=True, null=True)
+    service_advisor_name = models.CharField(max_length=255, blank=True, null=True)
+
     def __str__(self):
         return self.name
 

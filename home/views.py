@@ -109,20 +109,26 @@ def workshop(request):
         selected_branch_id = request.GET.get("branch")  # for admin filtering
 
         if request.user.access_level == "admin":
-            vehicles = Vehicle.objects.filter(is_master_record=True).annotate(
-                latest_service_date=Max('duplicate_vehicles__date_created')
-            ).order_by('-latest_service_date', '-id')
-            branches = Branch.objects.all() # for filter dropdown
+            vehicles = (
+                Vehicle.objects.filter(is_master_record=True)
+                .annotate(latest_service_date=Max("duplicate_vehicles__date_created"))
+                .order_by("-latest_service_date", "-id")
+            )
+            branches = Branch.objects.all()  # for filter dropdown
 
             if selected_branch_id:
                 vehicles = vehicles.filter(branch__id=selected_branch_id)
         else:
             if request.user.branch:
-                vehicles = Vehicle.objects.filter(
-                    branch=request.user.branch, is_master_record=True
-                ).annotate(
-                    latest_service_date=Max('duplicate_vehicles__date_created')
-                ).order_by('-latest_service_date', '-id')
+                vehicles = (
+                    Vehicle.objects.filter(
+                        branch=request.user.branch, is_master_record=True
+                    )
+                    .annotate(
+                        latest_service_date=Max("duplicate_vehicles__date_created")
+                    )
+                    .order_by("-latest_service_date", "-id")
+                )
             else:
                 # If a non-admin user has no branch assigned, they shouldn't see any vehicles
                 vehicles = Vehicle.objects.none()

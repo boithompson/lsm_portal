@@ -76,8 +76,8 @@ class InternalEstimate(models.Model):
         Vehicle, on_delete=models.CASCADE, related_name="internal_estimate"
     )
     apply_vat = models.BooleanField(default=False)
-    discount = models.DecimalField(
-        max_digits=5, decimal_places=2, blank=True, null=True, default=Decimal("0.00")
+    discount_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, blank=True, null=True, default=Decimal("0.00")
     )
     is_invoice = models.BooleanField(default=False)  # New field
     vat_amount = models.DecimalField(
@@ -97,10 +97,9 @@ class InternalEstimate(models.Model):
         if self.pk:
             for estimate_part in self.estimatepart_set.all():
                 total += estimate_part.price * estimate_part.quantity
-        # Apply discount if set
-        if self.discount:
-            discount_amount = total * (self.discount / Decimal("100"))
-            total -= discount_amount
+        # Apply discount amount if set
+        if self.discount_amount:
+            total -= self.discount_amount
         return total
 
 

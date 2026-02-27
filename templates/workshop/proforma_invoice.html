@@ -254,10 +254,10 @@
                     <td colspan="4" style="text-align:right;"><b>Subtotal</b></td>
                     <td><b>{{ subtotal|naira }}</b></td>
                 </tr>
-                {% if internal_estimate.discount %}
+                {% if internal_estimate.discount_amount %}
                 <tr>
-                    <td colspan="4" style="text-align:right;"><b>Discount ({{ internal_estimate.discount }}%)</b></td>
-                    <td><b>-{{ subtotal|multiply:internal_estimate.discount|divide:100|naira }}</b></td>
+                    <td colspan="4" style="text-align:right;"><b>Discount</b></td>
+                    <td><b>-{{ internal_estimate.discount_amount|naira }}</b></td>
                 </tr>
                 {% endif %}
                 {% if vat_applied %}
@@ -299,11 +299,23 @@
         </p>					
         <div style="margin-top: 60px; display: flex; justify-content: space-between;">
             <div style="width: 300px; text-align: center; border-top: 1px solid #000; padding-top: 5px;">
-            <p style="font-size: 16px; font-weight: 700; margin-bottom: 0;">Rafiu Adelani Ogunlowo</p>
+            <p style="font-size: 16px; font-weight: 700; margin-bottom: 0;">
+                {% if vehicle.branch.workshop_manager_name %}
+                    {{ vehicle.branch.workshop_manager_name }}
+                {% else %}
+                    Rafiu Adelani Ogunlowo
+                {% endif %}
+            </p>
             <p style="font-weight: bold; margin-top: 0;">Workshop Manager</p>
             </div>	
             <div style="width: 300px; text-align: center; border-top: 1px solid #000; padding-top: 5px;">
-            <p style="font-size: 16px; font-weight: 700; margin-bottom:0;">GBENGA ONI</p>
+            <p style="font-size: 16px; font-weight: 700; margin-bottom:0;">
+                {% if vehicle.branch.service_advisor_name %}
+                    {{ vehicle.branch.service_advisor_name }}
+                {% else %}
+                    GBENGA ONI
+                {% endif %}
+            </p>
             <p style="font-weight: bold; margin-top:0;">Service Advisor</p>
             </div>
         </div>

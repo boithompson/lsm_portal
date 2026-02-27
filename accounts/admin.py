@@ -19,6 +19,22 @@ admin.site.register(CustomUser, CustomUserAdmin)
 
 @admin.register(Branch)
 class BranchAdmin(admin.ModelAdmin):
-    list_display = ("name", "address", "created_at")
-    search_fields = ("name", "address")
+    list_display = (
+        "name",
+        "address",
+        "workshop_manager_name",
+        "service_advisor_name",
+        "created_at",
+    )
+    search_fields = ("name", "address", "workshop_manager_name", "service_advisor_name")
     ordering = ("name",)
+    fieldsets = (
+        (None, {"fields": ("name", "address")}),
+        (
+            "Signatory Information",
+            {
+                "fields": ("workshop_manager_name", "service_advisor_name"),
+                "description": "Branch-specific signatory names for invoice printing",
+            },
+        ),
+    )
