@@ -1,0 +1,126 @@
+{% extends 'home/base.html' %}
+{% load static %}
+{% load workshop_tags %}
+
+{% block title %}Export Workshop Records{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="mb-4">Export Workshop Records</h2>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="id_start_date" class="form-label">Start Date</label>
+                            {{ form.start_date }}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="id_end_date" class="form-label">End Date</label>
+                            {{ form.end_date }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fields to Export</label>
+                            <div class="row">
+                                {% for choice in form.fields_to_export.field.choices %}
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check">
+                                        <input type="checkbox" 
+                                               name="fields_to_export" 
+                                               value="{{ choice.0 }}" 
+                                               id="id_fields_to_export_{{ forloop.counter0 }}"
+                                               {% if choice.0 in form.fields_to_export.value %}checked{% endif %}>
+                                        <label class="form-check-label" for="id_fields_to_export_{{ forloop.counter0 }}">
+                                            {{ choice.1 }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">Preview</button>
+                            <a href="?{{ request.GET.urlencode }}&export=1" class="btn btn-success" {% if not form.is_valid %}disabled{% endif %}>
+                                <i class="fas fa-download"></i> Export to Excel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if form.is_valid and vehicles %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>Preview (Showing first 20 records)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered">
+                            <thead class="table-dark">
+                                <tr>
+                                    {% for header in template_headers %}
+                                    <th>{{ header }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for vehicle_row in vehicle_data %}
+                                <tr>
+                                    {% for field_name in fields_to_export %}
+                                    <td>
+                                        {% if field_name in vehicle_row %}
+                                            {% with value=vehicle_row|lookup:field_name %}
+                                                {% if value %}
+                                                    {{ value }}
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle"></i>
+                        Total records: {{ vehicles.count }} | Showing first 20 in preview
+                    </div>
+                </div>
+            </div>
+            {% elif form.is_valid and not vehicles %}
+            <div class="alert alert-warning mt-4">
+                <i class="fas fa-exclamation-triangle"></i>
+                No workshop records found for the selected criteria.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% comment %}
+Custom template filter to get attribute dynamically
+This would need to be added to a template tag file, but for now we'll handle it in the view
+{% endcomment %}
+
+<style>
+    .form-check-label {
+        font-weight: normal;
+    }
+    .table th, .table td {
+        vertical-align: middle;
+        font-size: 0.9rem;
+    }
+    .text-muted {
+        font-style: italic;
+        color: #6c757d !important;
+    }
+</style>
+
+{% endblock %}

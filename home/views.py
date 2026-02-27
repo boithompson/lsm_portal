@@ -182,7 +182,9 @@ def find_vehicle_by_chasis(request):
                 # Show service history for this chasis number
                 master_vehicle = master_vehicles.first()
                 # Get all service records (including master and duplicates) for this chasis
-                all_vehicles = Vehicle.objects.filter(chasis_no__iexact=chasis_no).order_by("-date_created")
+                all_vehicles = Vehicle.objects.filter(
+                    chasis_no__iexact=chasis_no
+                ).order_by("-date_created")
                 service_records = all_vehicles.filter(is_master_record=False)
 
                 # Paginate service records
@@ -218,7 +220,9 @@ def find_vehicle_by_chasis(request):
         if master_vehicles.exists():
             master_vehicle = master_vehicles.first()
             # Get all service records (including master and duplicates) for this chasis
-            all_vehicles = Vehicle.objects.filter(chasis_no__iexact=chasis_no).order_by("-date_created")
+            all_vehicles = Vehicle.objects.filter(chasis_no__iexact=chasis_no).order_by(
+                "-date_created"
+            )
             service_records = all_vehicles.filter(is_master_record=False)
 
             # Paginate service records

@@ -9,4 +9,9 @@ urlpatterns = [
         views.print_proforma_invoice,
         name="print_proforma_invoice",
     ),
+    path(
+        "export/",
+        views.WorkshopExportView.as_view(),
+        name="workshop_export",
+    ),
 ]
