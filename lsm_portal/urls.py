@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from home import views as home_views  # Import custom error views
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path("yesimhere/", admin.site.urls),
     path("", include("accounts.urls")),
     path("", include("store.urls")),
     path("dashboard/", include("home.urls")),
