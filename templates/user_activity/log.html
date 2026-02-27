@@ -90,7 +90,7 @@
 
             {% if page_obj.has_other_pages %}
                 <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center">
+                    <ul class="pagination justify-content-center flex-wrap">
                         {% if page_obj.has_previous %}
                             <li class="page-item">
                                 <a class="page-link" href="{% url_replace page=page_obj.previous_page_number %}">Previous</a>
@@ -98,13 +98,41 @@
                         {% else %}
                             <li class="page-item disabled"><span class="page-link">Previous</span></li>
                         {% endif %}
-                        {% for i in page_obj.paginator.page_range %}
-                            {% if page_obj.number == i %}
-                                <li class="page-item active"><span class="page-link">{{ i }}</span></li>
-                            {% else %}
-                                <li class="page-item"><a class="page-link" href="{% url_replace page=i %}">{{ i }}</a></li>
+                        
+                        {% if page_obj.paginator.num_pages <= 7 %}
+                            {% for i in page_obj.paginator.page_range %}
+                                {% if page_obj.number == i %}
+                                    <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                                {% else %}
+                                    <li class="page-item"><a class="page-link" href="{% url_replace page=i %}">{{ i }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            {% if page_obj.number > 3 %}
+                                <li class="page-item"><a class="page-link" href="{% url_replace page=1 %}">1</a></li>
+                                {% if page_obj.number > 4 %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
                             {% endif %}
-                        {% endfor %}
+                            
+                            {% for i in page_obj.paginator.page_range %}
+                                {% if i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                                    {% if page_obj.number == i %}
+                                        <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                                    {% else %}
+                                        <li class="page-item"><a class="page-link" href="{% url_replace page=i %}">{{ i }}</a></li>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.number < page_obj.paginator.num_pages|add:'-2' %}
+                                {% if page_obj.number < page_obj.paginator.num_pages|add:'-3' %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                                <li class="page-item"><a class="page-link" href="{% url_replace page=page_obj.paginator.num_pages %}">{{ page_obj.paginator.num_pages }}</a></li>
+                            {% endif %}
+                        {% endif %}
+                        
                         {% if page_obj.has_next %}
                             <li class="page-item">
                                 <a class="page-link" href="{% url_replace page=page_obj.next_page_number %}">Next</a>
