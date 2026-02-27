@@ -174,14 +174,16 @@ def find_vehicle_by_chasis(request):
     if request.method == "POST":
         chasis_no = request.POST.get("chasis_no", "").strip()
         if chasis_no:
-            # Case-insensitive chasis number lookup
-            vehicles = Vehicle.objects.filter(chasis_no__iexact=chasis_no)
-            if vehicles.exists():
+            # Case-insensitive chasis number lookup - only search master records
+            master_vehicles = Vehicle.objects.filter(
+                chasis_no__iexact=chasis_no, is_master_record=True
+            )
+            if master_vehicles.exists():
                 # Show service history for this chasis number
-                master_vehicle = vehicles.filter(is_master_record=True).first()
-                service_records = vehicles.filter(is_master_record=False).order_by(
-                    "-date_created"
-                )
+                master_vehicle = master_vehicles.first()
+                # Get all service records (including master and duplicates) for this chasis
+                all_vehicles = Vehicle.objects.filter(chasis_no__iexact=chasis_no).order_by("-date_created")
+                service_records = all_vehicles.filter(is_master_record=False)
 
                 # Paginate service records
                 paginator = Paginator(
@@ -191,7 +193,7 @@ def find_vehicle_by_chasis(request):
                 page_obj = paginator.get_page(page_number)
 
                 # Calculate total visits including master vehicle
-                total_visits = vehicles.count()
+                total_visits = all_vehicles.count()
 
                 context = {
                     "chasis_no": chasis_no,
@@ -209,10 +211,15 @@ def find_vehicle_by_chasis(request):
     # Handle GET request with chasis_no parameter (from vehicle detail page)
     chasis_no = request.GET.get("chasis_no", "").strip()
     if chasis_no:
-        vehicles = Vehicle.objects.filter(chasis_no__iexact=chasis_no)
-        if vehicles.exists():
-            master_vehicle = vehicles.filter(is_master_record=True).first()
-            service_records = vehicles.order_by("-date_created")
+        # Only search master records first
+        master_vehicles = Vehicle.objects.filter(
+            chasis_no__iexact=chasis_no, is_master_record=True
+        )
+        if master_vehicles.exists():
+            master_vehicle = master_vehicles.first()
+            # Get all service records (including master and duplicates) for this chasis
+            all_vehicles = Vehicle.objects.filter(chasis_no__iexact=chasis_no).order_by("-date_created")
+            service_records = all_vehicles.filter(is_master_record=False)
 
             # Paginate service records
             paginator = Paginator(
@@ -225,7 +232,7 @@ def find_vehicle_by_chasis(request):
                 "chasis_no": chasis_no,
                 "master_vehicle": master_vehicle,
                 "service_records": page_obj,
-                "total_visits": vehicles.count(),
+                "total_visits": all_vehicles.count(),
                 "record_status_choices": VehicleStatus.choices,
             }
             return render(request, "home/vehicle_chasis_lookup.html", context)
