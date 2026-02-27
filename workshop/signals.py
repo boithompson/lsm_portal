@@ -21,18 +21,21 @@ def update_internal_estimate_totals(sender, instance, **kwargs):
     if not InternalEstimate.objects.filter(pk=internal_estimate.pk).exists():
         return
 
-    # Recalculate grand_total
-    current_grand_total = internal_estimate.grand_total
+    # Calculate the base amount (parts total minus discount) for VAT calculation
+    base_amount = Decimal("0.00")
+    for estimate_part in internal_estimate.estimatepart_set.all():
+        base_amount += estimate_part.price * estimate_part.quantity
+    
+    if internal_estimate.discount_amount:
+        base_amount -= internal_estimate.discount_amount
 
     # Calculate new VAT and total amounts
     new_vat_amount = Decimal("0.00")
-    new_total_with_vat = current_grand_total
+    new_total_with_vat = base_amount
 
     if internal_estimate.apply_vat:
-        new_vat_amount = Decimal(str(current_grand_total)) * Decimal(
-            "0.075"
-        )  # 7.5% VAT
-        new_total_with_vat = Decimal(str(current_grand_total)) + new_vat_amount
+        new_vat_amount = base_amount * Decimal("0.075")  # 7.5% VAT on base amount
+        new_total_with_vat = base_amount + new_vat_amount
 
     # Only save if the calculated values are different from the current values on the instance
     if (internal_estimate.vat_amount != new_vat_amount) or (

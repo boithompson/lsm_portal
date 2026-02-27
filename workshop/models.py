@@ -100,7 +100,7 @@ class InternalEstimate(models.Model):
         # Apply discount amount if set
         if self.discount_amount:
             total -= self.discount_amount
-        # Apply VAT if it's enabled
+        # Apply VAT if it's enabled - this is for record keeping purposes
         if self.apply_vat and self.vat_amount:
             total += self.vat_amount
         return total

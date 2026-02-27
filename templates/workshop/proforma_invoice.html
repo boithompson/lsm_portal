@@ -265,9 +265,16 @@
                     <td colspan="4" style="text-align:right;"><b>VAT (7.5%)</b></td>
                     <td><b>{{ internal_estimate.vat_amount|naira }}</b></td>
                 </tr>
+                {% endif %}
+                {% if vat_applied %}
                 <tr class="total-row">
-                    <td colspan="4" style="text-align:right;"><b>Total (with VAT)</b></td>
+                    <td colspan="4" style="text-align:right;"><b>Grand Total (Including VAT)</b></td>
                     <td><b>{{ internal_estimate.total_with_vat|naira }}</b></td>
+                </tr>
+                {% else %}
+                <tr class="total-row">
+                    <td colspan="4" style="text-align:right;"><b>Grand Total</b></td>
+                    <td><b>{{ internal_estimate.grand_total|naira }}</b></td>
                 </tr>
                 {% endif %}
             </tbody>
