@@ -54,3 +54,5 @@ Pipfile.lock
 *.swp
 *.swo
 .idea/
+
+data/

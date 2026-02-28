@@ -98,50 +98,49 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="dropdown">
-                                        <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton{{ record.id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                            Actions
-                                        </button>
-                                        <ul class="dropdown-menu action-dropdown" aria-labelledby="dropdownMenuButton{{ record.id }}">
-                                            <li><a class="dropdown-item" href="{% url 'home:vehicle_detail' record.id %}">View</a></li>
-                                            <li><a class="dropdown-item" href="{% url 'home:edit_vehicle' record.id %}">Edit</a></li>
-                                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#updateStatusModal{{ record.id }}">Update Status</a></li>
-                                            {% if request.user.access_level == 'admin' or request.user.access_level == 'manager' %}
-                                            <li>
-                                                <form action="{% url 'home:delete_vehicle' record.id %}" method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this vehicle?');">
-                                                    {% csrf_token %}
-                                                    <button type="submit" class="dropdown-item text-danger">Delete</button>
-                                                </form>
-                                            </li>
-                                            {% endif %}
-                                        </ul>
-                                    </div>
-                                    <!-- Update Status Modal -->
-                                    <div class="modal fade" id="updateStatusModal{{ record.id }}" tabindex="-1" aria-labelledby="updateStatusModalLabel{{ record.id }}" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="updateStatusModalLabel{{ record.id }}">Update Status for {{ record }}</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        <div class="dropdown">
+                                            <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton{{ record.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                Actions
+                                            </button>
+                                            <ul class="dropdown-menu action-dropdown" aria-labelledby="dropdownMenuButton{{ record.id }}">
+                                                <li><a class="dropdown-item" href="{% url 'home:vehicle_detail' record.id %}">View</a></li>
+                                                <li><a class="dropdown-item" href="{% url 'home:edit_vehicle' record.id %}">Edit</a></li>
+                                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#updateStatusModal{{ record.id }}">Update Status</a></li>
+                                                {% if request.user.access_level == 'admin' or request.user.access_level == 'manager' %}
+                                                <li>
+                                                    <form action="{% url 'home:delete_vehicle' record.id %}" method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this vehicle?');">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="dropdown-item text-danger">Delete</button>
+                                                    </form>
+                                                </li>
+                                                {% endif %}
+                                            </ul>
+                                        </div>
+                                        <!-- Update Status Modal -->
+                                        <div class="modal fade" id="updateStatusModal{{ record.id }}" tabindex="-1" aria-labelledby="updateStatusModalLabel{{ record.id }}" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="updateStatusModalLabel{{ record.id }}">Update Status for {{ record }}</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form action="{% url 'home:update_vehicle_status' record.id %}" method="post">
+                                                        {% csrf_token %}
+                                                        <div class="modal-body">
+                                                            <select name="status" class="form-select" required>
+                                                                {% for status_key, status_value in record_status_choices %}
+                                                                    <option value="{{ status_key }}" {% if record.status == status_key %}selected{% endif %}>{{ status_value }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                            <button type="submit" class="btn btn-primary">Save changes</button>
+                                                        </div>
+                                                    </form>
                                                 </div>
-                                                <form action="{% url 'home:update_vehicle_status' record.id %}" method="post">
-                                                    {% csrf_token %}
-                                                    <div class="modal-body">
-                                                        <select name="status" class="form-select" required>
-                                                            {% for status_key, status_value in record_status_choices %}
-                                                                <option value="{{ status_key }}" {% if record.status == status_key %}selected{% endif %}>{{ status_value }}</option>
-                                                            {% endfor %}
-                                                        </select>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                        <button type="submit" class="btn btn-primary">Save changes</button>
-                                                    </div>
-                                                </form>
                                             </div>
                                         </div>
-                                    </div>
-                                    
                                 </td>
                             </tr>
                             {% endfor %}

@@ -181,20 +181,22 @@ def find_vehicle_by_chasis(request):
             if master_vehicles.exists():
                 # Show service history for this chasis number
                 master_vehicle = master_vehicles.first()
-                # Get all service records (including master and duplicates) for this chasis
+                # Get all vehicles with this chasis number (both master and duplicates) for history
                 all_vehicles = Vehicle.objects.filter(
                     chasis_no__iexact=chasis_no
                 ).order_by("-date_created")
-                service_records = all_vehicles.filter(is_master_record=False)
+                
+                # Show all records in history section (both master and service records)
+                history_records = all_vehicles
 
-                # Paginate service records
+                # Paginate history records
                 paginator = Paginator(
-                    service_records, 10
-                )  # Show 10 service records per page
+                    history_records, 10
+                )  # Show 10 records per page
                 page_number = request.GET.get("page")
                 page_obj = paginator.get_page(page_number)
 
-                # Calculate total visits including master vehicle
+                # Calculate total visits including all records
                 total_visits = all_vehicles.count()
 
                 context = {
@@ -219,16 +221,18 @@ def find_vehicle_by_chasis(request):
         )
         if master_vehicles.exists():
             master_vehicle = master_vehicles.first()
-            # Get all service records (including master and duplicates) for this chasis
+            # Get all vehicles with this chasis number (both master and duplicates) for history
             all_vehicles = Vehicle.objects.filter(chasis_no__iexact=chasis_no).order_by(
                 "-date_created"
             )
-            service_records = all_vehicles.filter(is_master_record=False)
+            
+            # Show all records in history section (both master and service records)
+            history_records = all_vehicles
 
-            # Paginate service records
+            # Paginate history records
             paginator = Paginator(
-                service_records, 10
-            )  # Show 10 service records per page
+                history_records, 10
+            )  # Show 10 records per page
             page_number = request.GET.get("page")
             page_obj = paginator.get_page(page_number)
 
