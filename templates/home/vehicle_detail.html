@@ -106,7 +106,7 @@
                     {% endif %}
                 {% else %}
                     <p>No internal estimate found for this vehicle.</p>
-                    {% if request.user.access_level == 'procurement' or request.user.access_level == 'workshop' or request.user.access_level == 'admin' %}
+                    {% if request.user.access_level == 'procurement' or request.user.access_level == 'workshop' or request.user.access_level == 'admin' or request.user.access_level == 'manager' %}
                         <a href="{% url 'home:create_internal_estimate' vehicle.id %}" class="btn btn-primary btn-sm">Create Internal Estimate</a>
                     {% endif %}
                 {% endif %}
