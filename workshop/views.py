@@ -29,6 +29,7 @@ def workshop_access_required(view_func):
             return redirect("accounts:login")  # Redirect to login if not authenticated
         if request.user.access_level not in [
             "admin",
+            "manager",
             "workshop",
             "procurement",
             "account",

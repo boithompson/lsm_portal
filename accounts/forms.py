@@ -49,11 +49,12 @@ class StaffCreationForm(forms.ModelForm):
         if user and user.access_level == "manager":
             self.fields["access_level"].choices = [
                 choice
-                for choice in CustomUser.ACCESS_LEVEL_CHOICES
+                for choice in CustomUser.AccessLevel.choices
                 if choice[0] not in ["admin", "manager"]
             ]
-            # Hide branch field from manager
-            self.fields.pop("branch", None)
+            # Hide branch field from manager but keep it in the form for validation
+            self.fields["branch"].widget = forms.HiddenInput()
+            self.fields["branch"].required = False
 
 
 class StaffEditForm(forms.ModelForm):
@@ -71,6 +72,6 @@ class StaffEditForm(forms.ModelForm):
         if user and user.access_level == "manager":
             self.fields["access_level"].choices = [
                 choice
-                for choice in CustomUser.ACCESS_LEVEL_CHOICES
+                for choice in CustomUser.AccessLevel.choices
                 if choice[0] not in ["admin", "manager"]
             ]
