@@ -289,20 +289,6 @@ def add_vehicle(request):
                     vehicle.is_master_record = False
                     vehicle.branch = master_vehicle.branch
 
-                    # Auto-generate job number
-                    import datetime
-
-                    today = datetime.date.today()
-                    year = today.year
-                    month = today.month
-                    day = today.day
-
-                    # Get the next job number for this vehicle
-                    existing_jobs = Vehicle.objects.filter(
-                        master_vehicle=master_vehicle, is_master_record=False
-                    ).count()
-                    job_number = f"{master_vehicle.uuid}-{year:04d}-{month:02d}-{day:02d}-{existing_jobs + 1:03d}"
-                    vehicle.job_no = job_number
 
                 except Vehicle.DoesNotExist:
                     # Fallback to regular logic if master vehicle not found

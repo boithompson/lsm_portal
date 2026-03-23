@@ -21,7 +21,7 @@ class Vehicle(models.Model):
     customer_name = models.CharField(max_length=255)
     address = models.CharField(max_length=225)
     phone = models.CharField(max_length=20)
-    job_no = models.CharField(max_length=100, blank=True, null=True)
+    job_no = models.IntegerField(blank=True, null=True)
     vehicle_make = models.CharField(max_length=100)
     model = models.CharField(max_length=100)
     year = models.PositiveIntegerField()

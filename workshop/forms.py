@@ -26,7 +26,7 @@ class VehicleForm(forms.ModelForm):
             "customer_name": forms.TextInput(attrs={"class": "form-control"}),
             "address": forms.TextInput(attrs={"class": "form-control"}),
             "phone": forms.TextInput(attrs={"class": "form-control"}),
-            "job_no": forms.TextInput(attrs={"class": "form-control"}),
+            "job_no": forms.NumberInput(attrs={"class": "form-control"}),
             "vehicle_make": forms.TextInput(attrs={"class": "form-control"}),
             "model": forms.TextInput(attrs={"class": "form-control"}),
             "year": forms.NumberInput(attrs={"class": "form-control"}),
