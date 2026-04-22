@@ -300,11 +300,12 @@
             <br/>
             <b>E.</b>&nbsp;&nbsp;&nbsp;&nbsp;Prices of parts or materials are subject to change without prior notice to customers.												
             <br/>
-            <b>F.</b>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: blue; font-weight: bold;">
+            <b>F.</b>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: blue; font-weight: bold;">Payments can be made to the following accounts:
                 {% if vehicle.branch.bank_name and vehicle.branch.account_number and vehicle.branch.account_name %}
-                    Payments can be made to the following account: {{ vehicle.branch.account_name }}, {{ vehicle.branch.bank_name }}, Account No: {{ vehicle.branch.account_number }}
-                {% else %}
-                    Payments can be made to the following accounts: "Lanre Shittu Motors ABJ Workshop, Account No: 5381506500, Bank: Moneipoint Microfinance Bank"
+                    Account 1: {{ vehicle.branch.account_name }}, {{ vehicle.branch.bank_name }}, Account No: {{ vehicle.branch.account_number }}<br>
+                {% endif %}
+                {% if vehicle.branch.bank_2_name and vehicle.branch.account_2_number and vehicle.branch.account_2_name %}
+                    Account 2: {{ vehicle.branch.account_2_name }}, {{ vehicle.branch.bank_2_name }}, Account No: {{ vehicle.branch.account_2_number }}
                 {% endif %}
             </span>
             <br/>

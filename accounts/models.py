@@ -95,6 +95,11 @@ class Branch(models.Model):
     account_number = models.CharField(max_length=20, blank=True, null=True)
     account_name = models.CharField(max_length=255, blank=True, null=True)
 
+    bank_2_name = models.CharField(max_length=100, blank=True, null=True)
+    account_2_number = models.CharField(max_length=20, blank=True, null=True)
+    account_2_name = models.CharField(max_length=255, blank=True, null=True)
+
+
     def __str__(self):
         return self.name
 

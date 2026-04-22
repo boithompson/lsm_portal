@@ -58,5 +58,13 @@ class BranchAdmin(admin.ModelAdmin):
                 "fields": ("bank_name", "account_number", "account_name"),
                 "description": "Branch bank account details for payment processing",
             },
+
         ),
+        (
+            "Secondary Account Details",
+            {
+                "fields": ("bank_2_name", "account_2_number", "account_2_name"),
+                "description": "Optional secondary bank account details for the branch",
+            },
+        )
     )
