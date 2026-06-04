@@ -61,12 +61,21 @@ class VehicleAdmin(admin.ModelAdmin):
 
 @admin.register(JobSheet)
 class JobSheetAdmin(admin.ModelAdmin):
-    list_display = ("vehicle", "service_advisor", "assigned_to")
+    list_display = ("vehicle", "service_advisor", "assigned_to", "job_summary")
     search_fields = (
         "vehicle__licence_plate",
+        "vehicle__job_no",
+        "vehicle__chasis_no",
         "service_advisor__full_name",
-        "assigned_to__full_name",
+        "assigned_to",
+        "job_description",
     )
+    list_select_related = ("vehicle", "service_advisor")
+    ordering = ("vehicle__job_no", "-vehicle__date_created")
+
+    @admin.display(description="Job Summary")
+    def job_summary(self, obj):
+        return obj.job_description[:80] if obj.job_description else "-"
 
 
 @admin.register(InternalEstimate)
@@ -78,8 +87,14 @@ class InternalEstimateAdmin(admin.ModelAdmin):
         "is_invoice",
         "grand_total",
     )
-    search_fields = ("vehicle__licence_plate",)
+    search_fields = (
+        "vehicle__licence_plate",
+        "vehicle__job_no",
+        "vehicle__chasis_no",
+        "vehicle__customer_name",
+    )
     list_filter = ("apply_vat", "is_invoice", "vehicle__branch")
+    list_select_related = ("vehicle",)
     fieldsets = (
         (None, {"fields": ("vehicle",)}),
         (
@@ -92,5 +107,11 @@ class InternalEstimateAdmin(admin.ModelAdmin):
 @admin.register(EstimatePart)
 class EstimatePartAdmin(admin.ModelAdmin):
     list_display = ("name", "estimate", "price", "quantity")
-    search_fields = ("name", "estimate__vehicle__licence_plate")
-    list_filter = ("estimate__vehicle__branch",)
+    search_fields = (
+        "name",
+        "estimate__vehicle__licence_plate",
+        "estimate__vehicle__job_no",
+        "estimate__vehicle__chasis_no",
+    )
+    list_filter = ("estimate__vehicle__branch", "estimate__is_invoice")
+    list_select_related = ("estimate", "estimate__vehicle")
