@@ -5,11 +5,36 @@
 {% block content %}
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-    {% if request.user.access_level == 'admin' or request.user.access_level == 'manager' %}
-        <a href="{% url 'store:central_add_stock' %}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-            <i class="fas fa-plus fa-sm text-white-50"></i> Central Stock Management
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'home:invoice_search' %}" class="d-none d-sm-inline-block btn btn-sm btn-outline-primary shadow-sm">
+            <i class="fas fa-file-invoice fa-sm"></i> Search Invoices
         </a>
-    {% endif %}
+        {% if request.user.access_level == 'admin' or request.user.access_level == 'manager' %}
+            <a href="{% url 'store:central_add_stock' %}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-plus fa-sm text-white-50"></i> Central Stock Management
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-body">
+                <form method="get" action="{% url 'home:invoice_search' %}" class="row g-3 align-items-end">
+                    <div class="col-md-8">
+                        <label for="dashboard-invoice-query" class="form-label">Quick Invoice Search by Job or Chassis Number</label>
+                        <input type="text" class="form-control" id="dashboard-invoice-query" name="q" placeholder="Enter job number or chassis number">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search"></i> Search Invoices
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="row">

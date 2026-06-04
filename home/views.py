@@ -47,6 +47,44 @@ def dashboard(request):
 
 
 @login_required
+def invoice_search(request):
+    if request.user.access_level not in ["admin", "manager", "account", "workshop"]:
+        messages.error(request, "You do not have permission to access invoice search.")
+        return redirect("home:dashboard")
+
+    search_query = request.GET.get("q", "").strip()
+    invoice_records = Vehicle.objects.select_related("branch", "internal_estimate").filter(
+        internal_estimate__isnull=False
+    )
+
+    if request.user.access_level not in ["admin", "manager"]:
+        if request.user.branch:
+            invoice_records = invoice_records.filter(branch=request.user.branch)
+        else:
+            invoice_records = invoice_records.none()
+
+    if search_query:
+        filters = Q(chasis_no__iexact=search_query)
+        try:
+            filters |= Q(job_no=int(search_query))
+        except ValueError:
+            pass
+        invoice_records = invoice_records.filter(filters)
+
+    invoice_records = invoice_records.order_by("-date_created")
+    paginator = Paginator(invoice_records, 20)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "page_obj": page_obj,
+        "search_query": search_query,
+        "result_count": invoice_records.count(),
+    }
+    return render(request, "home/invoice_search.html", context)
+
+
+@login_required
 def staffs(request):
     if request.user.access_level not in ["admin", "manager"]:
         return redirect("home:dashboard")

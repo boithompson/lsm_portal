@@ -119,6 +119,11 @@
                             <i class="fas fa-wrench fa-icon"></i> Workshop
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'invoice-search' in request.path %}active{% endif %}" href="{% url 'home:invoice_search' %}">
+                            <i class="fas fa-file-invoice fa-icon"></i> Invoice Search
+                        </a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle {% if 'export' in request.path %}active{% endif %}" href="#" id="exportDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-file-export fa-icon"></i> Export
@@ -150,6 +155,11 @@
                     <li class="nav-item">
                         <a class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="{% url 'home:dashboard' %}">
                             <i class="fas fa-tachometer-alt fa-icon"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'invoice-search' in request.path %}active{% endif %}" href="{% url 'home:invoice_search' %}">
+                            <i class="fas fa-file-invoice fa-icon"></i> Invoice Search
                         </a>
                     </li>
                     <li class="nav-item">

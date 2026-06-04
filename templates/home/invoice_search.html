@@ -1,0 +1,119 @@
+{% extends "home/base.html" %}
+
+{% block title %}Invoice Search - LSM Portal{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Invoice Search</h1>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label for="job_no" class="form-label">Job Number or Chassis Number</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="job_no"
+                    name="q"
+                    value="{{ search_query }}"
+                    placeholder="Enter job number or chassis number"
+                >
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'home:invoice_search' %}" class="btn btn-outline-secondary w-100">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if search_query %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Results for: {{ search_query }}</h6>
+        <span class="badge bg-primary">{{ result_count }} record{{ result_count|pluralize }}</span>
+    </div>
+    <div class="card-body">
+        {% if page_obj.object_list %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Job No</th>
+                        <th>Customer</th>
+                        <th>Vehicle</th>
+                        <th>Branch</th>
+                        <th>Type</th>
+                        <th>Date Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in page_obj %}
+                    <tr>
+                        <td>{{ record.job_no }}</td>
+                        <td>{{ record.customer_name }}</td>
+                        <td>{{ record.vehicle_make }} {{ record.model }}</td>
+                        <td>{{ record.branch.name }}</td>
+                        <td>
+                            {% if record.internal_estimate.is_invoice %}
+                                <span class="badge bg-danger">Invoice</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Proforma Invoice</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ record.date_created|date:"Y-m-d" }}</td>
+                        <td>
+                            <a href="{% url 'home:vehicle_detail' record.id %}" class="btn btn-sm btn-outline-primary">
+                                View
+                            </a>
+                            <a href="{% url 'workshop:print_proforma_invoice' record.id %}?date=now" target="_blank" class="btn btn-sm btn-info text-white">
+                                Print
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="Invoice search pagination">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?q={{ search_query }}&page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?q={{ search_query }}&page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        {% else %}
+        <p class="mb-0 text-muted">No invoice found for this job number.</p>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    Enter a job number to search for matching invoices.
+</div>
+{% endif %}
+{% endblock %}
