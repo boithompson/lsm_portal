@@ -153,8 +153,49 @@
             background-color: #0056b3;
         }
 
+        .bank-account-section {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border: 1px solid #000;
+            background: #fafafa;
+        }
+
+        .bank-account-selector {
+            margin-top: 6px;
+            margin-bottom: 10px;
+        }
+
+        .bank-account-selector label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .bank-account-selector select {
+            width: 100%;
+            max-width: 360px;
+            padding: 6px 8px;
+            border: 1px solid #000;
+            background: #fff;
+            font-size: 14px;
+        }
+
+        .bank-account-display {
+            padding: 8px 0 0;
+        }
+
+        .bank-account-card {
+            font-weight: bold;
+            color: #0000cc;
+        }
+
+        .bank-account-empty {
+            font-style: italic;
+        }
+
         @media print {
             .print-btn-container { display: none; }
+            .bank-account-selector { display: none; }
             body { margin: 0; }
             .invoice-wrapper { border: none; }
         }
@@ -300,16 +341,40 @@
             <br/>
             <b>E.</b>&nbsp;&nbsp;&nbsp;&nbsp;Prices of parts or materials are subject to change without prior notice to customers.												
             <br/>
-            <b>F.</b>&nbsp;&nbsp;&nbsp;&nbsp;<span style="font-weight: bold;">Payments can be made to the following accounts:<br/>
-                {% if vehicle.branch.bank_name and vehicle.branch.account_number and vehicle.branch.account_name %}
-                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b style="color: blue;">Account 1: {{ vehicle.branch.account_name }}, {{ vehicle.branch.bank_name }}, Account No: {{ vehicle.branch.account_number }}</b><br/>
-                {% endif %}
-                {% if vehicle.branch.bank_2_name and vehicle.branch.account_2_number and vehicle.branch.account_2_name %}
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Account 2: {{ vehicle.branch.account_2_name }}, {{ vehicle.branch.bank_2_name }}, Account No: {{ vehicle.branch.account_2_number }}
-                {% endif %}
-            </span>
+            <b>F.</b>&nbsp;&nbsp;&nbsp;&nbsp;<span style="font-weight: bold;">Payments can be made to the following account:</span>
+            <div class="bank-account-section">
+                <div class="bank-account-selector">
+                    <label for="bank-account-select">Select bank name</label>
+                    <select id="bank-account-select" aria-label="Select bank account to display">
+                        {% if vehicle.branch.bank_name and vehicle.branch.account_number and vehicle.branch.account_name %}
+                            <option
+                                value="account-1"
+                                data-account-name="{{ vehicle.branch.account_name }}"
+                                data-bank-name="{{ vehicle.branch.bank_name }}"
+                                data-account-number="{{ vehicle.branch.account_number }}"
+                            >
+                                {{ vehicle.branch.bank_name }}
+                            </option>
+                        {% endif %}
+                        {% if vehicle.branch.bank_2_name and vehicle.branch.account_2_number and vehicle.branch.account_2_name %}
+                            <option
+                                value="account-2"
+                                data-account-name="{{ vehicle.branch.account_2_name }}"
+                                data-bank-name="{{ vehicle.branch.bank_2_name }}"
+                                data-account-number="{{ vehicle.branch.account_2_number }}"
+                            >
+                                {{ vehicle.branch.bank_2_name }}
+                            </option>
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="bank-account-display" id="bank-account-display">
+                    <div class="bank-account-card" id="bank-account-card"></div>
+                    <div class="bank-account-empty" id="bank-account-empty" style="display:none;">No bank account details are available for this branch.</div>
+                </div>
+            </div>
             <br/>
-            <b>G.</b>&nbsp;&nbsp;&nbsp;&nbsp;Call this number <b>{{ vehicle.branch.service_advisor_phone }}</b> to book your next appointment.
+            <b>G.</b>&nbsp;&nbsp;&nbsp;&nbsp;<span">Contact us on: <b style="color: red;">{{ vehicle.branch.service_advisor_phone }}</b> and Email: <b style="color: red;">abujaworkshop@lanreshittu.com</b> to book your next appointment.</span>
         </p>					
         <div style="margin-top: 60px; display: flex; justify-content: space-between;">
             <div style="width: 300px; text-align: center; border-top: 1px solid #000; padding-top: 5px;">
@@ -356,5 +421,53 @@
     <div class="print-btn-container">
         <button class="print-btn" onclick="window.print()">Print Invoice</button>
     </div>
+
+    <script>
+        (function () {
+            const select = document.getElementById("bank-account-select");
+            const card = document.getElementById("bank-account-card");
+            const empty = document.getElementById("bank-account-empty");
+
+            if (!select || !card || !empty) {
+                return;
+            }
+
+            function renderSelectedAccount() {
+                if (select.options.length === 0) {
+                    select.style.display = "none";
+                    card.textContent = "";
+                    card.style.display = "none";
+                    empty.style.display = "block";
+                    return;
+                }
+
+                const option = select.options[select.selectedIndex];
+                if (!option) {
+                    card.textContent = "";
+                    card.style.display = "none";
+                    empty.style.display = "block";
+                    return;
+                }
+
+                const bankName = option.dataset.bankName || "";
+                const accountName = option.dataset.accountName || "";
+                const accountNumber = option.dataset.accountNumber || "";
+
+                if (!bankName || !accountName || !accountNumber) {
+                    card.textContent = "";
+                    card.style.display = "none";
+                    empty.style.display = "block";
+                    return;
+                }
+
+                card.textContent = `${accountName}, ${bankName}, Account No: ${accountNumber}`;
+                card.style.display = "block";
+                empty.style.display = "none";
+            }
+
+            select.addEventListener("change", renderSelectedAccount);
+            renderSelectedAccount();
+        })();
+    </script>
 </body>
 </html>
